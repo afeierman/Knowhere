@@ -30,7 +30,7 @@
 	      			<span class="input-group-addon">
 	        			<i class="fa fa-user"></i>
 	      			</span>
-	      			<input type="text" class="form-control" ng-model="form.selected_user" uib-typeahead="user for user in form.getUniqueUsers()">
+	      			<input type="text" class="form-control" ng-model="form.selected_user" uib-typeahead="user for user in form.getUsers() | filter: $viewValue">
 	    		</div><!-- /input-group -->
 	  		</div><!-- /.col-lg-6 -->
 	  		<div class="col-lg-3">

@@ -28,13 +28,23 @@ function dateToStr(d, fmt){
 }
 
 /*** FORM ***/
-myApp.service("shared", function(){
+myApp.service("shared", function($http){
+  var users = []
   var userData = undefined;
   var d = new Date();
   var start_date = d
   var end_date = d
 
   return {
+    fetchUsers: function() {
+      return $http({
+        method: "GET",
+        url: "/get_users"
+      }).then(function(response){
+        users = response.data
+      });
+    },
+    getUsers: function(){return users.map(function(u){return u.username})},
     getStartDate: function() {return start_date;},
     getEndDate: function(){return end_date;},
     setStartDate: function(d){start_date = d;},
@@ -43,6 +53,7 @@ myApp.service("shared", function(){
 });
 
 myApp.controller("FormController", function(shared, Users){
+  shared.fetchUsers()
   this.selected_user = undefined;
   d = new Date();
   this.today = dateToStr(d, "ymd")
@@ -50,7 +61,9 @@ myApp.controller("FormController", function(shared, Users){
   this.end_date = shared.getEndDate();
   this.setStartDate = shared.setStartDate;
   this.setEndDate = shared.setEndDate;
-  this.getUniqueUsers = Users.getUniqueUsers
+  this.getUsers = shared.getUsers
+  
+
   //console.log(Users.getUniqueUsers())
   /*Users.getUniqueUsers().then(function(response){
     console.log(response.data[0]["names"])
@@ -60,14 +73,6 @@ myApp.controller("FormController", function(shared, Users){
 
 myApp.factory("Users", function($http){
   return {
-    getUniqueUsers: function() {
-      return $http({
-        method: "GET",
-        url: "/get_unique_users"
-      }).then(function(response){
-        return response.data[0]["names"];
-      });
-    },
     getUserData: function(fname) {
       return $http.get("/getData")
     }
