@@ -2,9 +2,9 @@
 <html ng-app="KnoWhere" ng-controller="MainController as app">
 <head>
 	<title>{{app.name}}</title>
-	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
-	<link rel="stylesheet" type="text/css" href="font-awesome/css/font-awesome.min.css">
-	<link rel="stylesheet" type="text/css" href="css/app.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="/static/font-awesome/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/app.css">
 </head>
 <body>
 	<nav class="navbar navbar-default navbar-fixed-top">
@@ -22,7 +22,7 @@
         	</ul>
     	</div>
     </nav>
-    <div class="container" ng-controller="FormController as form">
+    <div class="container" id="form" ng-controller="FormController as form">
 	    <div class="row">
 	  		<div class="col-lg-2">
 	  			<label for="first-name">First name</label>
@@ -30,7 +30,7 @@
 	      			<span class="input-group-addon">
 	        			<i class="fa fa-user"></i>
 	      			</span>
-	      			<input type="text" class="form-control" ng-model="form.selected_user" uib-typeahead="user for user in form.users | filter:$viewValue">
+	      			<input type="text" class="form-control" ng-model="form.selected_user" uib-typeahead="user for user in form.getUniqueUsers()">
 	    		</div><!-- /input-group -->
 	  		</div><!-- /.col-lg-6 -->
 	  		<div class="col-lg-3">
@@ -58,44 +58,49 @@
 	  		<div class="col-lg-12 text-center">
 	  			<h4 class="date-label">{{overview.date_range}}</h4>
 	  		</div>
-	  	<div class="row">
-	  		<div class="col-lg-4">
-		  		<div class="panel panel-default overview-panel">
-	  				<div class="panel-heading">
-	    				<h4 class="panel-title text-center">Personal</h4>
-	  				</div>
-	  				<div class="panel-body">
-	    				Panel content
-	  				</div>
+		  	<div class="row">
+		  		<div class="col-lg-4">
+			  		<div class="panel panel-default overview-panel">
+		  				<div class="panel-heading">
+		    				<h4 class="panel-title text-center">Personal</h4>
+		  				</div>
+		  				<div class="panel-body">
+		    				Panel content
+		  				</div>
+					</div>
 				</div>
-			</div>
-			<div class="col-lg-4">
-		  		<div class="panel panel-default overview-panel">
-	  				<div class="panel-heading">
-	    				<h4 class="panel-title text-center">Modes of Transportation</h4>
-	  				</div>
-	  				<div class="panel-body">
-	    				Panel content
-	  				</div>
+				<div class="col-lg-4">
+			  		<div class="panel panel-default overview-panel">
+		  				<div class="panel-heading">
+		    				<h4 class="panel-title text-center">Modes of Transportation</h4>
+		  				</div>
+		  				<div class="panel-body">
+		    				Panel content
+		  				</div>
+					</div>
 				</div>
-			</div>
-			<div class="col-lg-4">
-		  		<div class="panel panel-default overview-panel">
-	  				<div class="panel-heading">
-	    				<h4 class="panel-title text-center">Locations</h4>
-	  				</div>
-	  				<div class="panel-body">
-	    				Panel content
-	  				</div>
+				<div class="col-lg-4">
+			  		<div class="panel panel-default overview-panel">
+		  				<div class="panel-heading">
+		    				<h4 class="panel-title text-center">Locations</h4>
+		  				</div>
+		  				<div class="panel-body">
+		    				Panel content
+		  				</div>
+					</div>
 				</div>
-			</div>
+		  	</div><!-- /.row -->
 	  	</div><!-- /.row -->
-	  	</div><!-- /.row -->
-
 	</div><!-- /.container -->
-
-	<script type="text/javascript" src="js/angular.js"></script>
-	<script type="text/javascript" src="js/ui-bootstrap.js"></script>
-	<script type="text/javascript" src="../controllers/app.js"></script>
+	<div class="container" ng-controller="MapController as map">
+		<div class="row">
+	  		<div class="col-lg-12 text-center">
+	  			<h4 class="date-label">{{map.date}}</h4>
+	  		</div>
+	  	</div><!-- /.row -->
+	</div><!-- /.container -->
+	<script type="text/javascript" src="/static/js/angular.js"></script>
+	<script type="text/javascript" src="/static/js/ui-bootstrap.js"></script>
+	<script type="text/javascript" src="/static/js/app.js"></script>
 </body>
 </html>

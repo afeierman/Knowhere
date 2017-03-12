@@ -44,30 +44,35 @@ myApp.service("shared", function(){
 
 myApp.controller("FormController", function(shared, Users){
   this.selected_user = undefined;
-  this.users = Users;
   d = new Date();
   this.today = dateToStr(d, "ymd")
   this.start_date = shared.getStartDate();
   this.end_date = shared.getEndDate();
   this.setStartDate = shared.setStartDate;
   this.setEndDate = shared.setEndDate;
-
- /* var handleGetUniqueUsers = function(data, status) {
-    this.users = data;
-  };
-  Users.getUniqueUsers().success(handleGetUniqueUsers)*/
+  this.getUniqueUsers = Users.getUniqueUsers
+  //console.log(Users.getUniqueUsers())
+  /*Users.getUniqueUsers().then(function(response){
+    console.log(response.data[0]["names"])
+      this.users = response.data[0]["names"]
+  });*/
 });
 
 myApp.factory("Users", function($http){
-  /*return {
+  return {
     getUniqueUsers: function() {
-      return $http.get("/getUniqueUsers");
+      return $http({
+        method: "GET",
+        url: "/get_unique_users"
+      }).then(function(response){
+        return response.data[0]["names"];
+      });
     },
     getUserData: function(fname) {
       return $http.get("/getData")
     }
-  };*/
-  return ["Andrew", "Bill", "Emil", "Glen"];
+  };
+  //return ["Andrew", "Bill", "Emil", "Glen"];
 });
 
 
@@ -111,4 +116,21 @@ myApp.controller("OverviewController", function($scope, shared){
     return date_range
   }
 
+});
+
+
+/*** MAP ***/
+myApp.controller("MapController", function($scope, shared){
+
+  end_date = shared.getEndDate()
+  this.date = dateToStr(end_date, "");
+  
+  $scope.$watch(function(){
+    return shared.getEndDate();
+  }, function (newVal, oldVal, scope){
+    if(newVal !== undefined){
+      end_date = newVal;
+    }
+    scope.map.date = dateToStr(end_date, "");
+  });
 });
