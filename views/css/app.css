@@ -1,0 +1,46 @@
+body { 
+    padding-top: 65px;
+    font-family: Arial, Geneva, sans-serif;
+}
+
+.row {
+	margin-bottom: 50px;
+}
+
+h4.date-label {
+	color: #0094ff;
+	font-weight: bold;
+}
+
+.navbar {
+	background-color: #ff6a00;
+}
+
+.navbar * {
+	color: #ffffff !important;
+}
+
+.navbar-brand {
+	font-size: 1.4em;
+}
+
+@media (min-width: 1200px) {
+    .container{
+        max-width: 1200px;
+    }
+}
+
+h4.panel-title {
+	font-size: 1em;
+	color: #666666;
+	background: none;
+}
+
+.panel-default {
+	border: none;
+}
+
+.panel-default>.panel-heading{
+	background: none;
+
+}

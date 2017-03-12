@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html ng-app="KnoWhere" ng-controller="MainController as app">
+<head>
+	<title>{{app.name}}</title>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="font-awesome/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="css/app.css">
+</head>
+<body>
+	<nav class="navbar navbar-default navbar-fixed-top">
+     	<div class="container">
+        	<div class="navbar-header">
+          		<a class="navbar-brand" href="#">{{app.name}}</a>
+        	</div>
+          	<ul class="nav navbar-nav navbar-right">
+            	<li>
+            		<a href="#">
+            			Give me a recommendation!
+            			<i class="fa fa-star"></i>
+            		</a>
+            	</li>
+        	</ul>
+    	</div>
+    </nav>
+    <div class="container" ng-controller="FormController as form">
+	    <div class="row">
+	  		<div class="col-lg-2">
+	  			<label for="first-name">First name</label>
+	    		<div class="input-group">
+	      			<span class="input-group-addon">
+	        			<i class="fa fa-user"></i>
+	      			</span>
+	      			<input type="text" class="form-control" ng-model="form.selected_user" uib-typeahead="user for user in form.users | filter:$viewValue">
+	    		</div><!-- /input-group -->
+	  		</div><!-- /.col-lg-6 -->
+	  		<div class="col-lg-3">
+	  			<label for="start-date">Start date</label>
+	    		<div class="input-group">
+	      			<span class="input-group-addon">
+	        			<i class="fa fa-calendar"></i>
+	      			</span>
+	      			<input type="date" class="form-control" ng-model="form.start_date" ng-change="form.setStartDate(form.start_date)" max="{{form.today}}">
+	    		</div><!-- /input-group -->
+	  		</div><!-- /.col-lg-6 -->
+	  		<div class="col-lg-3">
+	  			<label for="end-date">End date</label>
+	    		<div class="input-group">
+	      			<span class="input-group-addon">
+	        			<i class="fa fa-calendar"></i>
+	      			</span>
+	      			<input type="date" class="form-control" ng-model="form.end_date" ng-change="form.setEndDate(form.end_date)" max="{{form.today}}">
+	    		</div><!-- /input-group -->
+	  		</div><!-- /.col-lg-6 -->
+		</div><!-- /.row -->
+	</div><!-- /.container -->
+	<div class="container" ng-controller="OverviewController as overview">
+		<div class="row">
+	  		<div class="col-lg-12 text-center">
+	  			<h4 class="date-label">{{overview.date_range}}</h4>
+	  		</div>
+	  	<div class="row">
+	  		<div class="col-lg-4">
+		  		<div class="panel panel-default overview-panel">
+	  				<div class="panel-heading">
+	    				<h4 class="panel-title text-center">Personal</h4>
+	  				</div>
+	  				<div class="panel-body">
+	    				Panel content
+	  				</div>
+				</div>
+			</div>
+			<div class="col-lg-4">
+		  		<div class="panel panel-default overview-panel">
+	  				<div class="panel-heading">
+	    				<h4 class="panel-title text-center">Modes of Transportation</h4>
+	  				</div>
+	  				<div class="panel-body">
+	    				Panel content
+	  				</div>
+				</div>
+			</div>
+			<div class="col-lg-4">
+		  		<div class="panel panel-default overview-panel">
+	  				<div class="panel-heading">
+	    				<h4 class="panel-title text-center">Locations</h4>
+	  				</div>
+	  				<div class="panel-body">
+	    				Panel content
+	  				</div>
+				</div>
+			</div>
+	  	</div><!-- /.row -->
+	  	</div><!-- /.row -->
+
+	</div><!-- /.container -->
+
+	<script type="text/javascript" src="js/angular.js"></script>
+	<script type="text/javascript" src="js/ui-bootstrap.js"></script>
+	<script type="text/javascript" src="../controllers/app.js"></script>
+</body>
+</html>
