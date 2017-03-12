@@ -1,3 +1,5 @@
 # python-related nonsense
 .ipynb_checkpoints
 *.pyc
+db/credentials.cfg
+.idea/*
