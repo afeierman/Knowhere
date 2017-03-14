@@ -1,6 +1,8 @@
 import pymongo
 import ConfigParser
-from pandas import DataFrame
+import pandas as pd
+from bson.objectid import ObjectId
+
 
 class Reader:
 
@@ -28,18 +30,31 @@ class Reader:
 
     def get_dataframe(self, collection, filter_args={}):
         data = [entry for entry in self.filter_collection(collection, filter_args)]
-        return DataFrame(data)
+        return pd.DataFrame(data)
         
     def get_dataframe_unrolled(self, collection, filter_args={}):
         data = []
+        if 'user_id' in filter_args.keys():
+            filter_args['user_id'] = ObjectId(filter_args['user_id'])
         for entry in self.filter_collection(collection, filter_args):
             for data_name, data_raw in entry['data'].iteritems():
                 row = {'timestamp': entry['timestamp'], 'user_id': entry['user_id'], 'sensor': entry['sensor']}
                 row['data_name'] = data_name
                 row['data_raw'] = data_raw
                 data.append(row)
-        return DataFrame(data)
-
+        return pd.DataFrame(data)
+        
+    def get_dataframe_pivoted(self, collection, filter_args={}):
+        import warnings
+        if 'user_id' not in filter_args.keys():
+            warnings.warn('Excluding user_id from filter can cause errors during pivot', Warning)
+        rdf = self.get_dataframe_unrolled(collection, filter_args)
+        rdf.timestamp = pd.to_datetime(rdf.timestamp)
+        rdf['sensor_name'] = rdf.apply(lambda row: row.sensor + ' (' + row.data_name + ')', axis=1)
+        rdf.drop(['sensor', 'data_name'], axis=1, inplace=True)
+        rdf_pivoted = rdf.pivot(index='timestamp', columns='sensor_name', values='data_raw')
+        return rdf_pivoted
+            
     def close(self):
         self.client.close()
 
