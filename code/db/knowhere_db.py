@@ -21,7 +21,9 @@ class Reader:
         self.client = pymongo.MongoClient(connect_string)
         self.db = self.client[self.db_name]
 
-    def filter_collection(self, collection, filter_args={}):
+    def filter_collection(self, collection, filter_args={}, find_one=False):
+        if find_one:
+            return self.db[collection].find_one(filter_args)
         return self.db[collection].find(filter_args)
 
     def get_dataframe(self, collection, filter_args={}):
