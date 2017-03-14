@@ -27,6 +27,16 @@ class Reader:
     def get_dataframe(self, collection, filter_args={}):
         data = [entry for entry in self.filter_collection(collection, filter_args)]
         return DataFrame(data)
+        
+    def get_dataframe_unrolled(self, collection, filter_args={}):
+        data = []
+        for entry in self.filter_collection(collection, filter_args):
+            for data_name, data_raw in entry['data'].iteritems():
+                row = {'timestamp': entry['timestamp'], 'user_id': entry['user_id'], 'sensor': entry['sensor']}
+                row['data_name'] = data_name
+                row['data_raw'] = data_raw
+                data.append(row)
+        return DataFrame(data)
 
     def close(self):
         self.client.close()
