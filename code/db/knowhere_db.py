@@ -1,8 +1,9 @@
+import warnings
 import pymongo
 import ConfigParser
 import pandas as pd
 from bson.objectid import ObjectId
-
+from dateutil.parser import parse as parse_date
 
 class Reader:
 
@@ -21,8 +22,30 @@ class Reader:
         connect_string = "mongodb://{user}:{pwd}@{ip}/{db_name}".format(user=self.user, pwd=self.pwd,
                                                                         ip=self.ip, db_name=self.db_name)
         self.client = pymongo.MongoClient(connect_string)
-        self.db = self.client[self.db_name]
-
+        self.db = self.client[self.db_name]   
+        
+    def build_filter(self, username=None, user_id=None, sensor=None, min_date=None, max_date=None, include_max_date=False): 
+        filter_args = {}
+        if username:
+            user_data = self.filter_collection('users', filter_args={'username': username}, find_one=True)
+            if user_data:
+                user_id = user_data.get('_id')
+        if user_id:
+            filter_args['user_id'] = user_id            
+        if sensor:
+            filter_args['sensor'] = sensor
+        if min_date or max_date:
+            date_filter = {}
+            if min_date:
+                date_filter['$gte'] = parse_date(min_date)
+            if max_date:
+                if include_max_date:
+                    date_filter['$lte'] = parse_date(max_date)
+                else:
+                    date_filter['$lt'] = parse_date(max_date)
+            filter_args['timestamp'] = date_filter
+        return filter_args
+        
     def filter_collection(self, collection, filter_args={}, find_one=False):
         if find_one:
             return self.db[collection].find_one(filter_args)
@@ -32,10 +55,10 @@ class Reader:
         data = [entry for entry in self.filter_collection(collection, filter_args)]
         return pd.DataFrame(data)
         
-    def get_dataframe_unrolled(self, collection, filter_args={}):
+    def get_dataframe_unrolled(self, collection, username=None, user_id=None, sensor=None, min_date=None, max_date=None, include_max_date=False):
+        # build filter_args
+        filter_args = self.build_filter(username, user_id, sensor, min_date, max_date, include_max_date)
         data = []
-        if 'user_id' in filter_args.keys():
-            filter_args['user_id'] = ObjectId(filter_args['user_id'])
         for entry in self.filter_collection(collection, filter_args):
             for data_name, data_raw in entry['data'].iteritems():
                 row = {'timestamp': entry['timestamp'], 'user_id': entry['user_id'], 'sensor': entry['sensor']}
@@ -44,12 +67,14 @@ class Reader:
                 data.append(row)
         return pd.DataFrame(data)
         
-    def get_dataframe_pivoted(self, collection, filter_args={}):
-        import warnings
-        if 'user_id' not in filter_args.keys():
+    def get_dataframe_pivoted(self, collection, username=None, user_id=None, sensor=None, min_date=None, max_date=None, include_max_date=False):
+        # build filter_args
+        filter_args = self.build_filter()
+        if not user_id and not username:
             warnings.warn('Excluding user_id from filter can cause errors during pivot', Warning)
-        rdf = self.get_dataframe_unrolled(collection, filter_args)
-        rdf.timestamp = pd.to_datetime(rdf.timestamp)
+        # get the unrolled version so we can pivot the dataframe
+        rdf = self.get_dataframe_unrolled(collection, username, user_id, sensor, min_date, max_date, include_max_date)
+        #rdf.timestamp = pd.to_datetime(rdf.timestamp)
         rdf['sensor_name'] = rdf.apply(lambda row: row.sensor + ' (' + row.data_name + ')', axis=1)
         rdf.drop(['sensor', 'data_name'], axis=1, inplace=True)
         rdf_pivoted = rdf.pivot(index='timestamp', columns='sensor_name', values='data_raw')
