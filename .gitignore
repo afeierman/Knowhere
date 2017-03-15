@@ -3,3 +3,5 @@
 *.pyc
 db/credentials.cfg
 .idea/*
+*map-helper.js
+*mapbox.txt
