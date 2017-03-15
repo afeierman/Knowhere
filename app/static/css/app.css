@@ -17,6 +17,8 @@ h4.date-label {
 
 .navbar {
 	background-color: #ff6a00;
+	width: 100%;
+	transition: top 0.2s ease-in-out;
 }
 
 .navbar * {
@@ -46,4 +48,12 @@ h4.panel-title {
 .panel-default>.panel-heading{
 	background: none;
 
+}
+
+#mapid {
+	height: 400px;
+}
+
+[ng-cloak] {
+	visibility: hidden;
 }

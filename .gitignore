@@ -3,3 +3,6 @@
 *.pyc
 credentials.cfg
 .idea/*
+.idea/*
+*map-helper.js
+*mapbox.txt
