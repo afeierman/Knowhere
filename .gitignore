@@ -1,7 +1,7 @@
 # python-related nonsense
 .ipynb_checkpoints
 *.pyc
-credentials.cfg
+*credentials.cfg
 .idea/*
 .idea/*
 *map-helper.js
