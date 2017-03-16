@@ -23,11 +23,27 @@ myApp.service("shared", function($http){
   var the_username = undefined;
   var the_user_id = undefined
   var user_data = undefined;
+  var user_data_first = undefined
+  var first_date = undefined
   var user_data_last = undefined
+  var last_date = undefined
   var map_latlong = undefined
   var d = new Date();
   var start_date = d;
   var end_date = d;
+  var overviewdate=document.getElementById("overview-date")
+  var mapdate=document.getElementById("map-date")
+
+  var get_first_data = function(){
+    if(user_data !== []){
+      return user_data.filter(function(entry){
+        return dateToStr(start_date,"ymd")==entry.date.substring(0,10) || 
+              user_data[0].date.substring(0,10)==entry.date.substring(0,10)
+      });
+    } else {
+      return []
+    }
+  };
 
   var get_last_data = function(){
     if(user_data !== []){
@@ -92,8 +108,15 @@ myApp.service("shared", function($http){
         }
       }).then(function(response){
         user_data = response.data;
+        user_data_first = get_first_data();
         user_data_last = get_last_data();
+        first_date = new Date(user_data_first[0].date)
+        last_date = new Date(user_data_last[0].date)
+        console.log(first_date)
+        console.log(last_date)
         map_latlong = get_map_latlong();
+        overviewdate.innerText = dateToStr(first_date, "") + " \u2013 " + dateToStr(last_date, "");
+        mapdate.innerText = dateToStr(last_date, "");
         //console.log(map_latlong)
         draw(map_latlong);
       });
@@ -116,13 +139,6 @@ myApp.controller("FormController", function($scope, shared, Users){
   this.getData = shared.getData
   //this.setStartDate(this.start_date)
   //this.setEndDate(this.end_date)
-
-
-  //console.log(Users.getUniqueUsers())
-  /*Users.getUniqueUsers().then(function(response){
-    console.log(response.data[0]["names"])
-      this.users = response.data[0]["names"]
-  });*/
 });
 
 myApp.factory("Users", function($http){
