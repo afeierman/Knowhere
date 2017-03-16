@@ -94,7 +94,8 @@ myApp.service("shared", function($http){
         user_data = response.data;
         user_data_last = get_last_data();
         map_latlong = get_map_latlong();
-        console.log(map_latlong)
+        //console.log(map_latlong)
+        draw(map_latlong);
       });
     }
   }
