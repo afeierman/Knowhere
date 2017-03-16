@@ -33,25 +33,33 @@
 	      			</span>
 	      			<input type="text" class="form-control" ng-model="form.selected_user" ng-blur="form.setUser(form.selected_user)" uib-typeahead="user for user in form.getUsers() | filter: $viewValue">
 	    		</div><!-- /input-group -->
-	  		</div><!-- /.col-lg-6 -->
+	  		</div><!-- /.col -->
 	  		<div class="col-lg-3">
 	  			<label for="start-date">Start date</label>
 	    		<div class="input-group">
 	      			<span class="input-group-addon">
 	        			<i class="fa fa-calendar"></i>
 	      			</span>
-	      			<input type="date" class="form-control" ng-model="form.start_date" ng-change="form.setStartDate(form.start_date)" max="{{form.today}}">
+	      			<input type="date" class="form-control" ng-model="form.start_date" ng-blur="form.setStartDate(form.start_date)" max="{{form.today}}">
 	    		</div><!-- /input-group -->
-	  		</div><!-- /.col-lg-6 -->
+	  		</div><!-- /.col -->
 	  		<div class="col-lg-3">
 	  			<label for="end-date">End date</label>
 	    		<div class="input-group">
 	      			<span class="input-group-addon">
 	        			<i class="fa fa-calendar"></i>
 	      			</span>
-	      			<input type="date" class="form-control" ng-model="form.end_date" ng-change="form.setEndDate(form.end_date)" max="{{form.today}}">
+	      			<input type="date" class="form-control" ng-model="form.end_date" ng-blur="form.setEndDate(form.end_date)" max="{{form.today}}">
 	    		</div><!-- /input-group -->
-	  		</div><!-- /.col-lg-6 -->
+	  		</div><!-- /.col -->
+	  		<div class="col-lg-1">
+	  			<label style="visibility: hidden;">GO!</label>
+	  			<div class="input-group">
+		    		<button type="button" class="btn btn-primary btn-sm" ng-click="form.getData()">
+		    			<i class="fa fa-check"></i>
+		    		</button>
+		    	</div><!-- /input-group -->
+	  		</div><!-- /.col -->
 		</div><!-- /.row -->
 	</div><!-- /.container -->
 	<div class="container" ng-controller="OverviewController as overview">

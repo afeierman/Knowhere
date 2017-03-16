@@ -2,6 +2,7 @@
 from flask import Flask, send_file, request
 import json
 import pandas as pd
+#from datetime import datetime
 
 # User-created
 import knowhere_db as kdb
@@ -42,22 +43,32 @@ def get_users():
 	return json.dumps(users.to_dict(orient='records'));
 	#return json.dumps([{"names":["Andrew", "Bill", "Emil", "Glen"]}])
 
-@app.route("/query_iphone_test", methods=["GET"])
+@app.route("/query_iphone_test_GPS", methods=["GET"])
 def get_iphone_test():
-	user_id = request.args.get("user_id")
-	print user_id
-	temp_data = query_db_convert_id(
-		reader=reader,
-		collection="iphone_test",
-		id_cols=None,
-		sort_col=None,
-		method="pivoted",
-		_filter={"user_id":kdb.ObjectId(user_id)}
-	)
+	user_name = request.args.get("user_name")
+	min_date = request.args.get("min_date")
+	max_date = request.args.get("max_date")
 
-	# just getting lat/long for testing
-	user_data = temp_data.apply(make_lat_long, axis=1)
-	user_data = list(user_data[pd.notnull(user_data)])
+	# min_date = datetime.strptime(min_date, '%Y-%m-%dT%H:%M:%S.%fZ')
+	# max_date = datetime.strptime(max_date, '%Y-%m-%dT%H:%M:%S.%fZ')
+	try:
+		temp_data = query_db_convert_id(
+			reader=reader,
+			collection="iphone_test",
+			method="pivoted",
+			username=user_name,
+			sensor="GPS",
+			min_date=min_date,
+			max_date=max_date
+			#_filter={"user_id":kdb.ObjectId(user_id)}
+		)
+
+		# just getting lat/long for testing
+		user_data = temp_data.apply(make_lat_long, axis=1)
+		user_data = list(user_data[pd.notnull(user_data)])
+	except:
+		user_data = []
+
 	return json.dumps(user_data);
 	#return json.dumps([{"names":["Andrew", "Bill", "Emil", "Glen"]}])
 	
