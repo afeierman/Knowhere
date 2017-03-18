@@ -1,9 +1,9 @@
 import warnings
 import pymongo
+import boto3
 import ConfigParser
 import pandas as pd
 from numpy import mean
-#from numpy.ndarray import astype
 from bson.objectid import ObjectId
 from dateutil.parser import parse as parse_date
 
@@ -129,3 +129,41 @@ class Writer(Reader):
         if insert_one:
             return self.db[collection].update_one(update_filter, {'$set': data}, upsert)
         return self.db[collection].update_many(update_filter, {'$set': data}, upsert)
+        
+
+class S3:
+
+    def __init__(self, db_name='test'):
+        self.connection = boto3.client('s3')
+        self.writer = Writer(db_name)
+        
+    def upload_to_s3(self, username, model_type, pickle_object, fname, bucket='knowhere-data', collection='models'):
+        user_id = self.writer.get_user_id(username)
+        key = '{}/{}'.format(collection, fname)
+        self.connection.put_object(Bucket=bucket, Key=key, Body=pickle_object)
+        s3_response = self.connection.head_object(Bucket=bucket, Key=key)
+        filesize = s3_response['ContentLength'] if s3_response else 0
+        if filesize == 0:
+            raise Exception('Error uploading to S3. File size is 0B')
+        entry = {'user_id': user_id, 'model_type': model_type, 'key': key}
+        update_filter = {'user_id': user_id, 'model_type': model_type}
+        self.writer.overwrite(collection=collection, data=entry, insert_one=True, update_filter=update_filter)
+        
+    def retrieve_from_s3(self, username, model_type=None, bucket='knowhere-data', collection='models'):
+        user_id = self.writer.get_user_id(username)
+        filter_args = {'user_id': user_id}
+        find_one = False
+        if model_type:
+            filter_args['model_type'] = model_type
+            find_one = True
+        entries = self.writer.read(collection, filter_args=filter_args, find_one=find_one)
+        pickle_objs = {}
+        for entry in entries:
+            key = entry['key']
+            m_type = entry['model_type']
+            response = self.connection.get_object(Bucket=bucket, Key=key)
+            pickle_objs[m_type] = response['Body'].read()
+        if model_type is not None:
+            return pickle_objs[model_type]
+        return pickle_objs
+    
