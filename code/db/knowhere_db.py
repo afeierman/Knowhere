@@ -2,6 +2,7 @@ import warnings
 import pymongo
 import boto3
 import ConfigParser
+import pickle
 import pandas as pd
 from numpy import mean
 from bson.objectid import ObjectId
@@ -38,9 +39,9 @@ class Reader:
     def build_filter(self, username=None, user_id=None, sensor=None, min_date=None, max_date=None, include_max_date=False): 
         filter_args = {}
         if username:
-            self.get_user_id(username)
+            user_id = self.get_user_id(username)
         if user_id:
-            filter_args['user_id'] = ObjectId(user_id)
+            filter_args['user_id'] = user_id            
         if sensor:
             filter_args['sensor'] = sensor
         if min_date or max_date:
@@ -77,12 +78,6 @@ class Reader:
         return pd.DataFrame(data)
         
     def get_dataframe_pivoted(self, collection, username=None, user_id=None, sensor=None, min_date=None, max_date=None, include_max_date=False):
-        def agg_data(d):
-            try:
-                return mean(float(d))
-            except:
-                return list(d)
-            return None
         # build filter_args
         filter_args = self.build_filter()
         if not user_id and not username:
@@ -90,8 +85,8 @@ class Reader:
         # get the unrolled version so we can pivot the dataframe
         rdf = self.get_dataframe_unrolled(collection, username, user_id, sensor, min_date, max_date, include_max_date)
         rdf['sensor_name'] = rdf.apply(lambda row: row.sensor + ' (' + row.data_name + ')', axis=1)
-        #rdf.drop(['sensor', 'data_name'], axis=1, inplace=True)
-        rdf_pivoted = rdf.pivot_table(index='timestamp', columns='sensor_name', values='data_raw', aggfunc=agg_data)
+        rdf.drop(['sensor', 'data_name'], axis=1, inplace=True)
+        rdf_pivoted = rdf.pivot(index='timestamp', columns='sensor_name', values='data_raw')
         return rdf_pivoted
 
     def read(self, collection, filter_args={}, find_one=False):
@@ -137,7 +132,8 @@ class S3:
         self.connection = boto3.client('s3')
         self.writer = Writer(db_name)
         
-    def upload_to_s3(self, username, model_type, pickle_object, fname, bucket='knowhere-data', collection='models'):
+    def upload_to_s3(self, username, model_type, model, fname, bucket='knowhere-data', collection='models'):
+        pickle_object = pickle.dumps(model)
         user_id = self.writer.get_user_id(username)
         key = '{}/{}'.format(collection, fname)
         self.connection.put_object(Bucket=bucket, Key=key, Body=pickle_object)
@@ -149,21 +145,13 @@ class S3:
         update_filter = {'user_id': user_id, 'model_type': model_type}
         self.writer.overwrite(collection=collection, data=entry, insert_one=True, update_filter=update_filter)
         
-    def retrieve_from_s3(self, username, model_type=None, bucket='knowhere-data', collection='models'):
+    def retrieve_from_s3(self, username, model_type, bucket='knowhere-data', collection='models'):
         user_id = self.writer.get_user_id(username)
         filter_args = {'user_id': user_id}
-        find_one = False
-        if model_type:
-            filter_args['model_type'] = model_type
-            find_one = True
-        entries = self.writer.read(collection, filter_args=filter_args, find_one=find_one)
-        pickle_objs = {}
-        for entry in entries:
-            key = entry['key']
-            m_type = entry['model_type']
-            response = self.connection.get_object(Bucket=bucket, Key=key)
-            pickle_objs[m_type] = response['Body'].read()
-        if model_type is not None:
-            return pickle_objs[model_type]
-        return pickle_objs
+        response = self.writer.read(collection, filter_args=filter_args, find_one=True)
+        key = response['key']
+        m_type = response['model_type']
+        model = self.connection.get_object(Bucket=bucket, Key=key)
+        model = pickle.loads(model['Body'].read())
+        return model
     
