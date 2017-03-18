@@ -37,17 +37,20 @@ h4.date-label {
 
 h4.panel-title {
 	font-size: 1em;
-	color: #666666;
+	color: #7fc9ff;
 	background: none;
+	font-weight: bold;
+	border: none;
 }
 
-.panel-default {
+.panel, .panel-default, .overview-panel, .panel-body {
 	border: none;
+	box-shadow: none;
 }
 
 .panel-default>.panel-heading{
 	background: none;
-
+	border: none;
 }
 
 #mapid {
@@ -56,4 +59,10 @@ h4.panel-title {
 
 [ng-cloak] {
 	visibility: hidden;
+}
+
+.badge {
+	background-color: #ffffff;
+	color: #666666;
+	border: 1px solid #e2e2e2;
 }
