@@ -1,3 +1,4 @@
+import shutil
 import pandas as pd
 from re import search
 from bson import ObjectId
@@ -5,13 +6,14 @@ from datetime import datetime
 from db.knowhere_db import Reader
 
 
-def iphone(file_with_path, username, dir_to_aggregate=None):       
-    df = read_from_csvs(username, file_with_path, dir_to_aggregate)
+def iphone(file_with_path, username, dir_to_aggregate=None, processed_dir=None):       
+    df = read_from_csvs(username, file_with_path, dir_to_aggregate, processed_dir)
     df = clean_iphone_data(df)
     df = aggregate_data(df)
     return df
 
-def andoid(file_with_path, username, dir_to_aggregate=None):
+    
+def andoid(file_with_path, username, dir_to_aggregate=None, processed_dir=None):
     raise Exception('Android processing not yet implemented')
     df = pd.DataFrame()
     #df = read_from_csvs(username, file_with_path, dir_to_aggregate)
@@ -23,17 +25,16 @@ def andoid(file_with_path, username, dir_to_aggregate=None):
 
 def get_user_id(df, username):
     reader = Reader('knowhere')
-    user_data = reader.filter_collection('users', {'username': username}, find_one=True)
-    user_id = user_data.get('_id') if user_data is not None else None
+    user_id = reader.get_user_id(username)
     if user_id is None:
         raise Exception('Could not get id for user {}'.format(username))
     df['user_id'] = user_id
     return df
 
     
-def read_from_csvs(username, file_with_path, dir_to_aggregate=None):
+def read_from_csvs(username, file_with_path, dir_to_aggregate=None, processed_dir=None):
     if dir_to_aggregate is not None:
-        aggregate_csvs(username, dir_to_aggregate, file_with_path)
+        aggregate_csvs(username, dir_to_aggregate, file_with_path, processed_dir)
     df = read_single_csv(file_with_path)
     df = get_user_id(df, username)
     return df
@@ -45,7 +46,7 @@ def read_single_csv(file_with_path):
     return df
     
     
-def aggregate_csvs(username, csv_dir, file_with_path):
+def aggregate_csvs(username, csv_dir, file_with_path, processed_dir):
     from glob import glob
     with open(file_with_path, 'w+') as f_handler:
         f_handler.write('timestamp, sensor, data_name, data_display, data_raw\n')
@@ -56,6 +57,7 @@ def aggregate_csvs(username, csv_dir, file_with_path):
                     # get rid of bad lines
                     if not search('Screen', line):
                         f_handler.write(line)
+            shutil.move(fn,processed_dir)
     
     
 def clean_iphone_data(df):
@@ -77,6 +79,7 @@ def clean_iphone_data(df):
 						}, inplace=True)
     return df
 
+    
 def aggregate_data(df):
     df = df.filter(items=['user_id', 'sensor', 'data_name', 'data_raw'])
     # group by some columns to join the others
