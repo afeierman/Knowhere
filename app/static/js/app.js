@@ -18,27 +18,30 @@ function dateToStr(d, fmt){
 
 /*** FORM ***/
 myApp.service("shared", function($http){
-  var users = [];
+  var users = []
   var usernames = []
-  var the_username = undefined;
+  var the_username = undefined
   var the_user_id = undefined
-  var user_data = undefined;
+  var user_data = undefined
   var user_data_first = undefined
   var first_date = undefined
   var user_data_last = undefined
   var last_date = undefined
   var map_latlong = undefined
-  var d = new Date();
-  var start_date = d;
-  var end_date = d;
+  var d = new Date()
+  var start_date = d
+  var end_date = d
   var overviewdate=document.getElementById("overview-date")
   var mapdate=document.getElementById("map-date")
+  var total_distance = "N/A"
 
   var get_first_data = function(){
     if(user_data !== []){
       return user_data.filter(function(entry){
-        return dateToStr(start_date,"ymd")==entry.date.substring(0,10) || 
+        return ("latitude" in entry) && (
+          dateToStr(start_date,"ymd")==entry.date.substring(0,10) || 
               user_data[0].date.substring(0,10)==entry.date.substring(0,10)
+        )
       });
     } else {
       return []
@@ -48,8 +51,20 @@ myApp.service("shared", function($http){
   var get_last_data = function(){
     if(user_data !== []){
       return user_data.filter(function(entry){
-        return dateToStr(end_date,"ymd")==entry.date.substring(0,10) || 
-              user_data[user_data.length-1].date.substring(0,10)==entry.date.substring(0,10)
+        return ("latitude" in entry) && (
+          dateToStr(end_date,"ymd")==entry.date.substring(0,10) || 
+              user_data[user_data.length-2].date.substring(0,10)==entry.date.substring(0,10)
+        )
+      });
+    } else {
+      return []
+    }
+  };
+
+  var get_total_distance = function(){
+    if(user_data !== []){
+      return user_data.filter(function(entry){
+        return "total_distance" in entry;
       });
     } else {
       return []
@@ -74,6 +89,7 @@ myApp.service("shared", function($http){
         usernames = users.map(function(x){return x.username})
       });
     },
+    getTotalDistance: function() {return total_distance},
     getUser: function(){return the_username;},
     getUsers: function(){return users.map(function(u){return u.username})},
     getStartDate: function() {return start_date;},
@@ -108,16 +124,18 @@ myApp.service("shared", function($http){
         }
       }).then(function(response){
         user_data = response.data;
+        //console.log(user_data)
         user_data_first = get_first_data();
         user_data_last = get_last_data();
         first_date = new Date(user_data_first[0].date)
         last_date = new Date(user_data_last[0].date)
-        console.log(first_date)
-        console.log(last_date)
+        //console.log(first_date)
+        //console.log(last_date)
         map_latlong = get_map_latlong();
         overviewdate.innerText = dateToStr(first_date, "") + " \u2013 " + dateToStr(last_date, "");
         mapdate.innerText = dateToStr(last_date, "");
-        //console.log(map_latlong)
+        total_distance = (get_total_distance()[0]["total_distance"]).toFixed(2);
+        //console.log(total_distance)
         draw(map_latlong);
       });
     }
@@ -162,6 +180,7 @@ myApp.controller("OverviewController", function($scope, shared){
   start_date = shared.getStartDate()
   end_date = shared.getEndDate()
   this.date_range = toDateRange(start_date, end_date);
+  this.getTotalDistance = shared.getTotalDistance;
   
   $scope.$watch(function(){
     return shared.getStartDate();
