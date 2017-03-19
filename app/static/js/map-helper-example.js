@@ -1,8 +1,9 @@
+var access_token = ''
 var mymap = L.map('mapid')//.setView([40.7530392755199 , -73.9934996106009], 12);
-var layer = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v10/tiles/256/{z}/{x}/{y}?access_token=', {
+var layer = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v10/tiles/256/{z}/{x}/{y}?access_token='+access_token, {
 	attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
 	maxZoom: 18,
-	accessToken: ''
+	accessToken: access_token
 })
 
 layer.addTo(mymap);
@@ -25,9 +26,9 @@ var reset_poly = function(){
 
 var append_to_poly = function(idx, obj){
 	polys[idx] = obj;
-}
+};
 
-async function draw(points){
+/*async function draw(points){
 	p = get_polys();
 
 	for(var i = 0; i < p.length; i++){
@@ -53,21 +54,34 @@ async function draw(points){
 }
 
 var get_sleep_ms = function(num_points){
-	var num_seconds = 6;
-	return Math.floor((1000 * num_seconds) / num_points);
+	var num_seconds = 1;
+	return (1000 * num_seconds) / num_points;
 }
+*/
 
-//draw();
+async function draw(points){
+	p = get_polys();
 
+	for(var i = 0; i < p.length; i++){
+		try{
+			p[i].removeFrom(mymap)
+		} catch(err) {}
+		
+	}
 
+	reset_poly();
 
+	var markers = []
+	for(var idx in points){
+		markers[idx] = L.marker(points[idx])
+	}
 
+	var group = new L.featureGroup(markers);
+	mymap.fitBounds(group.getBounds());
 
-/*markers = []
+	var temp = L.polygon(points);
+	temp.addTo(mymap);
 
-for(var idx in latlongs){
-	markers[idx] = L.marker(latlongs[idx])
+	append_to_poly(i, temp);
+	
 }
-
-var group = new L.featureGroup(markers);
-mymap.fitBounds(group.getBounds());*/
