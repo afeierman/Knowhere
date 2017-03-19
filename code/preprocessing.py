@@ -17,6 +17,6 @@ def preprocess(df,sample_rate="2s"):
     # drop the old column names
     df = df[['Acceleration','Magnetometer','Gyrometer','Microphone','Altimeter (Barometer) (Pressure)']]
     # resample the index, example of resampel rate is 2s
-    df.resample(sample_rate).mean()
+    df = df.resample(sample_rate).mean()
    
 
