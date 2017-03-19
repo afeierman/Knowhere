@@ -63,9 +63,9 @@ def get_iphone_test():
 			#_filter={"user_id":kdb.ObjectId(user_id)}
 		)
 
-		# just getting lat/long for testing
 		user_data = temp_data.apply(make_lat_long, axis=1)
 		user_data = list(user_data[pd.notnull(user_data)])
+		set_distance_traveled(temp_data, user_data)
 	except:
 		user_data = []
 
