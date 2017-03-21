@@ -34,6 +34,8 @@ myApp.service("shared", function($http){
   var overviewdate=document.getElementById("overview-date")
   var mapdate=document.getElementById("map-date")
   var total_distance = "N/A"
+  var home_coord = undefined
+  var work_coord = undefined
 
   var get_first_data = function(){
     if(user_data !== []){
@@ -53,7 +55,7 @@ myApp.service("shared", function($http){
       return user_data.filter(function(entry){
         return ("latitude" in entry) && (
           dateToStr(end_date,"ymd")==entry.date.substring(0,10) || 
-              user_data[user_data.length-2].date.substring(0,10)==entry.date.substring(0,10)
+              user_data[user_data.length-3].date.substring(0,10)==entry.date.substring(0,10)
         )
       });
     } else {
@@ -77,7 +79,17 @@ myApp.service("shared", function($http){
     } else{
       return [];
     }
-  }
+  };
+
+  var get_home_work_latlong = function(){
+    if(user_data !== []){
+      return user_data.filter(function(entry){
+        return "work" in entry;
+      });
+    } else {
+      return []
+    }
+  };
 
   return {
     queryUsers: function() {
@@ -141,8 +153,11 @@ myApp.service("shared", function($http){
         overviewdate.innerText = dateToStr(first_date, "") + " \u2013 " + dateToStr(last_date, "");
         mapdate.innerText = dateToStr(last_date, "");
         total_distance = (get_total_distance()[0]["total_distance"]).toFixed(2);
+        var hw = get_home_work_latlong()
+        home_coord = [hw[0].home.lat, hw[0].home.long]
+        work_coord = [hw[0].work.lat, hw[0].work.long]
         //console.log(total_distance)
-        draw(map_latlong);
+        draw(map_latlong, home_coord, work_coord);
       });
     }
   }
