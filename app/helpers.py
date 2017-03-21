@@ -1,4 +1,4 @@
-import pandas
+import pandas as pd
 import numpy as np
 
 def query_db_convert_id(reader, collection, id_cols=None,
@@ -89,3 +89,32 @@ def set_distance_traveled(gps_data, json_array):
 #           day_dist.ix[1:, 'GPS (Longitude)'], day_dist.ix[1:, 'GPS (Latitude)'])
     
 #     return dist_traveled.sum()
+
+
+def get_locs(reader, user_data, user_name):
+    """
+    Predict clusters from cluster
+    """
+    from sklearn import preprocessing
+    from sklearn.cluster import AgglomerativeClustering
+
+    H_model = uploader.retrieve_from_s3(user_name, model_type='H', bucket='knowhere-data', collection='models')
+    H_data = user_data[['GPS (Altitude)','GPS (Latitude)','GPS (Longitude)']]
+    timestamp = H_data.index
+    H_data = preprocessing.scale(H_data)
+    clusters = H_model.fit_predict(H_data)
+    df = pd.concat([pd.Series(timestamp),pd.Series(clusters)], axis=1)
+    df.columns = ["timestamp", "cluster"]
+
+    #one col for y-m-d-h to get unique hour per day
+    df["ymdh"] = df["timestamp"].apply(lambda t: "{year}{month}{day}{hour}".format(
+            year=t.year, month=t.month, day=t.day, hour=t.hour
+    ))
+    #one col just for hour
+    df["hour"] = df["timestamp"].apply(lambda t: t.hour)
+
+    df_dedupe = df.drop_duplicates(subset="ymdh", keep="first")
+    cluster_hour = df_dedupe.groupby("cluster").agg({"hour":"mean"})
+
+
+

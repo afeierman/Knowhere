@@ -100,8 +100,14 @@ myApp.service("shared", function($http){
         //the_user_id = users.filter(function(x){return x["username"]==uname})[0]._id;
       }
     },
-    setStartDate: function(d){start_date = d;},
-    setEndDate: function(d){end_date = d;},
+    setStartDate: function(d){
+      start_date = d;
+      //console.log(d);
+    },
+    setEndDate: function(d){
+      end_date = d;
+      //console.log(d);
+    },
     getData: function(){
       var s_date = start_date.getFullYear() + "-" + 
                   (start_date.getMonth()+1) + "-" + 
