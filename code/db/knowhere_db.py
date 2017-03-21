@@ -77,7 +77,7 @@ class Reader:
         data = reduce(lambda a,b: a + b, rows, [])
         return pd.DataFrame(data)
         
-    def get_dataframe_pivoted(self, collection, username=None, user_id=None, sensor=None, min_date=None, max_date=None, include_max_date=False):
+    def get_dataframe_pivoted_old(self, collection, username=None, user_id=None, sensor=None, min_date=None, max_date=None, include_max_date=False):
         # build filter_args
         filter_args = self.build_filter()
         if not user_id and not username:
@@ -89,10 +89,33 @@ class Reader:
         rdf_pivoted = rdf.pivot(index='timestamp', columns='sensor_name', values='data_raw')
         return rdf_pivoted
 
+    def get_dataframe_pivoted(self, collection, username=None, user_id=None, 
+                                sensor=None, min_date=None, max_date=None, include_max_date=False, grouping='timestamp'):
+        filter_args = filter_args = self.build_filter(username, user_id, sensor, min_date, max_date, include_max_date)
+        dd = self.read_group(collection=collection, grouping=grouping, filter_args=filter_args)
+        dd = [entry for entry in dd]
+        df = pd.DataFrame(dd)
+        df['sensor_data'] = df['sensor_data'].apply(lambda L: { k: v for d in L for k, v in d.items() })
+        df.rename(columns={'_id': 'timestamp'}, inplace=True)
+        df = df.set_index('timestamp')
+        data = pd.DataFrame(df['sensor_data']).to_dict(orient='index')
+        data = {k:v['sensor_data'] for k,v in data.iteritems()}
+        df = pd.DataFrame.from_dict(data, orient='index').astype('float')
+        df.index = pd.to_datetime(df.index)
+        return df
+        
     def read(self, collection, filter_args={}, find_one=False):
         if find_one:
             return self.db[collection].find_one(filter_args)
         return self.db[collection].find(filter_args)
+
+    def read_group(self, collection, grouping, filter_args={}):
+        grouping = '$' + grouping if grouping[0] != '$' else grouping
+        pipeline = [
+            {"$match": filter_args},
+            {"$group": {"_id": grouping, "sensor_data": {"$push": "$data" }}}
+        ]
+        return self.db[collection].aggregate(pipeline)
         
     def close(self):
         self.client.close()
@@ -113,8 +136,8 @@ class Writer(Reader):
 
     def write_dataframe_to_collection(self, df, collection):
         data = df.to_dict(orient='records')
-        return self.write(collection=collection, data=data, insert_many=True)
-        
+        return self.write(collection=collection, data=data, insert_one=False)
+    
     def write(self, collection, data, insert_one=False, update_filter={}, upsert=True):
         if insert_one:
             return self.db[collection].insert_one(data)
