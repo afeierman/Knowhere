@@ -65,6 +65,8 @@ def get_iphone_test():
 
 		user_data = temp_data.apply(make_lat_long, axis=1)
 		user_data = list(user_data[pd.notnull(user_data)])
+
+		get_locs(reader, temp_data, user_name, user_data)
 		set_distance_traveled(temp_data, user_data)
 	except:
 		user_data = []
