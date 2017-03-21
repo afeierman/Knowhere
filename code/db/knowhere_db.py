@@ -36,7 +36,7 @@ class Reader:
             raise Exception('Could not get user_id for user {}'.format(username))
         return user_id
         
-    def build_filter(self, username=None, user_id=None, sensor=None, min_date=None, max_date=None, include_max_date=False): 
+    def build_filter(self, username=None, user_id=None, sensor=None, commute=None, min_date=None, max_date=None, include_max_date=False): 
         filter_args = {}
         if username:
             user_id = self.get_user_id(username)
@@ -44,6 +44,8 @@ class Reader:
             filter_args['user_id'] = user_id            
         if sensor:
             filter_args['sensor'] = sensor
+        if commute is not None:
+            filter_args['commute'] =str(commute)
         if min_date or max_date:
             date_filter = {}
             if min_date:
@@ -60,7 +62,8 @@ class Reader:
         data = [entry for entry in self.read(collection, filter_args)]
         return pd.DataFrame(data)
         
-    def get_dataframe_unrolled(self, collection, username=None, user_id=None, sensor=None, min_date=None, max_date=None, include_max_date=False):
+    def get_dataframe_unrolled(self, collection, username=None, user_id=None, sensor=None, commute=None,
+                                min_date=None, max_date=None, include_max_date=False):
         def entry_to_rows(entry):
             return map(lambda (data_name, data_raw):
                     {'timestamp': entry['timestamp'], 'user_id': entry['user_id'], 'sensor': entry['sensor'], 
@@ -69,7 +72,7 @@ class Reader:
                     )
                     
         # build filter_args
-        filter_args = self.build_filter(username, user_id, sensor, min_date, max_date, include_max_date)
+        filter_args = self.build_filter(username, user_id, sensor, commute, min_date, max_date, include_max_date)
         entries = self.read(collection, filter_args)
         # turn each entry into a list (called row), so we have a list of list
         rows = map(lambda entry: entry_to_rows(entry), entries)
@@ -77,24 +80,27 @@ class Reader:
         data = reduce(lambda a,b: a + b, rows, [])
         return pd.DataFrame(data)
         
-    def get_dataframe_pivoted_old(self, collection, username=None, user_id=None, sensor=None, min_date=None, max_date=None, include_max_date=False):
+    def get_dataframe_pivoted_old(self, collection, username=None, user_id=None, sensor=None, commute=None, 
+                                    min_date=None, max_date=None, include_max_date=False):
         # build filter_args
         filter_args = self.build_filter()
         if not user_id and not username:
             warnings.warn('Excluding user_id from filter can cause errors during pivot', Warning)
         # get the unrolled version so we can pivot the dataframe
-        rdf = self.get_dataframe_unrolled(collection, username, user_id, sensor, min_date, max_date, include_max_date)
+        rdf = self.get_dataframe_unrolled(collection, username, user_id, sensor, commute, min_date, max_date, include_max_date)
         rdf['sensor_name'] = rdf.apply(lambda row: row.sensor + ' (' + row.data_name + ')', axis=1)
         rdf.drop(['sensor', 'data_name'], axis=1, inplace=True)
         rdf_pivoted = rdf.pivot(index='timestamp', columns='sensor_name', values='data_raw')
         return rdf_pivoted
 
-    def get_dataframe_pivoted(self, collection, username=None, user_id=None, 
-                                sensor=None, min_date=None, max_date=None, include_max_date=False, grouping='timestamp'):
-        filter_args = self.build_filter(username, user_id, sensor, min_date, max_date, include_max_date)
+    def get_dataframe_pivoted(self, collection, username=None, user_id=None, sensor=None, commute=None, 
+                                min_date=None, max_date=None, include_max_date=False, grouping='timestamp'):
+        filter_args = self.build_filter(username, user_id, sensor, commute, min_date, max_date, include_max_date)
         dd = self.read_group(collection=collection, grouping=grouping, filter_args=filter_args)
         dd = [entry for entry in dd]
         df = pd.DataFrame(dd)
+        if df.shape[0]==0:
+            return df
         df['sensor_data'] = df['sensor_data'].apply(lambda L: { k: v for d in L for k, v in d.items() })
         df.rename(columns={'_id': 'timestamp'}, inplace=True)
         df = df.set_index('timestamp')
