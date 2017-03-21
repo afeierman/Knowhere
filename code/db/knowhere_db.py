@@ -91,7 +91,7 @@ class Reader:
 
     def get_dataframe_pivoted(self, collection, username=None, user_id=None, 
                                 sensor=None, min_date=None, max_date=None, include_max_date=False, grouping='timestamp'):
-        filter_args = filter_args = self.build_filter(username, user_id, sensor, min_date, max_date, include_max_date)
+        filter_args = self.build_filter(username, user_id, sensor, min_date, max_date, include_max_date)
         dd = self.read_group(collection=collection, grouping=grouping, filter_args=filter_args)
         dd = [entry for entry in dd]
         df = pd.DataFrame(dd)
@@ -115,7 +115,7 @@ class Reader:
             {"$match": filter_args},
             {"$group": {"_id": grouping, "sensor_data": {"$push": "$data" }}}
         ]
-        return self.db[collection].aggregate(pipeline)
+        return self.db[collection].aggregate(pipeline, allowDiskUse = True)
         
     def close(self):
         self.client.close()
