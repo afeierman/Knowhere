@@ -24,8 +24,8 @@ var reset_poly = function(){
 	polys = [];
 };
 
-var append_to_poly = function(idx, obj){
-	polys[idx] = obj;
+var append_to_poly = function(obj){
+	polys.push(obj);
 };
 
 /*async function draw(points){
@@ -59,7 +59,7 @@ var get_sleep_ms = function(num_points){
 }
 */
 
-async function draw(points){
+async function draw(points, home_coords, work_coords){
 	p = get_polys();
 
 	for(var i = 0; i < p.length; i++){
@@ -82,6 +82,16 @@ async function draw(points){
 	var temp = L.polygon(points);
 	temp.addTo(mymap);
 
-	append_to_poly(i, temp);
+	var home = L.marker(home_coords);
+	var work = L.marker(work_coords);
+	home.addTo(mymap);
+	work.addTo(mymap);
+	home.bindPopup("home").openPopup();
+	work.bindPopup("work");
+
+
+	append_to_poly(temp);
+	append_to_poly(home);
+	append_to_poly(work);
 	
 }

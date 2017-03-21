@@ -91,30 +91,60 @@ def set_distance_traveled(gps_data, json_array):
 #     return dist_traveled.sum()
 
 
-def get_locs(reader, user_data, user_name):
+def get_locs(reader, user_data, user_name, json_array):
     """
     Predict clusters from cluster
     """
     from sklearn import preprocessing
     from sklearn.cluster import AgglomerativeClustering
 
-    H_model = uploader.retrieve_from_s3(user_name, model_type='H', bucket='knowhere-data', collection='models')
+    #H_model = uploader.retrieve_from_s3(user_name, model_type='H', bucket='knowhere-data', collection='models')
+    H_model = get_model(user_name)
     H_data = user_data[['GPS (Altitude)','GPS (Latitude)','GPS (Longitude)']]
-    timestamp = H_data.index
-    H_data = preprocessing.scale(H_data)
+    preprocess = preprocessing.scale(H_data)
     clusters = H_model.fit_predict(H_data)
-    df = pd.concat([pd.Series(timestamp),pd.Series(clusters)], axis=1)
-    df.columns = ["timestamp", "cluster"]
+    H_data.reset_index(inplace=True)
 
-    #one col for y-m-d-h to get unique hour per day
-    df["ymdh"] = df["timestamp"].apply(lambda t: "{year}{month}{day}{hour}".format(
-            year=t.year, month=t.month, day=t.day, hour=t.hour
+    H_data["ymdh"] = H_data["timestamp"].apply(lambda t: "{year}{month}{day}{hour}".format(
+        year=t.year, month=t.month, day=t.day, hour=t.hour
     ))
-    #one col just for hour
-    df["hour"] = df["timestamp"].apply(lambda t: t.hour)
+    H_data["hour"] = H_data["timestamp"].apply(lambda t: t.hour)
+    H_data["cluster"] = pd.Series(clusters)
+    H_data.loc[:,"GPS (Latitude)"] = H_data["GPS (Latitude)"].astype(float)
+    H_data.loc[:,"GPS (Longitude)"] = H_data["GPS (Longitude)"].astype(float)
+    H_data.loc[:,"GPS (Altitude)"] = H_data["GPS (Altitude)"].astype(float)
+    df_grouped = H_data.groupby(["cluster", "hour"]).median()
 
-    df_dedupe = df.drop_duplicates(subset="ymdh", keep="first")
-    cluster_hour = df_dedupe.groupby("cluster").agg({"hour":"mean"})
+    #print "DF_GROUPED: ", df_grouped
+
+    get_label_latlongs(df_grouped, json_array)
 
 
+def get_label_latlongs(df, json_array):
+    zero = df.loc[0,:]
+    one = df.loc[1,:]
+    labels = {"home":{},"work":{}}
+    home=None; work=None
 
+    if np.mean(zero.index) < np.mean(one.index):
+        home = one; work = zero
+    else:
+        home = zero; work = one
+
+    min_home = home.loc[home.index == min(home.index),:]
+    min_work = work.loc[work.index == max(work.index),:]
+
+    labels["home"]["lat"] = float(min_home["GPS (Latitude)"])
+    labels["home"]["long"] = float(min_home["GPS (Longitude)"])
+    labels["work"]["lat"] = float(min_work["GPS (Latitude)"])
+    labels["work"]["long"] = float(min_work["GPS (Longitude)"])
+
+    print "LABELS", labels
+
+    json_array.append(labels)
+
+
+def get_model(username):
+    import pickle
+    filename = "data/hclust_{0}.p".format(username)
+    return pickle.load(open(filename, "rb" ))
