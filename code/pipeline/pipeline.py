@@ -41,7 +41,7 @@ def read_from_csvs(username, file_with_path, dir_to_aggregate=None, processed_di
   
   
 def read_single_csv(file_with_path):
-    df = pd.read_csv(file_with_path, sep=', ', index_col=0, skiprows=0, engine='python', thousands=',', skip_blank_lines=False)
+    df = pd.read_csv(file_with_path, sep=', ', index_col=0, skiprows=0, engine='python', thousands=',', skip_blank_lines=True)
     df.index = pd.to_datetime(df.index.str.replace('"',''))
     return df
     
@@ -54,7 +54,8 @@ def aggregate_csvs(username, csv_dir, file_with_path, processed_dir):
             with open(fn, 'r+') as f:
                 next(f)
                 for line in f:
-                    # get rid of bad lines
+                    if line[0] is not '"':
+                        continue
                     if not search('Screen', line):
                         f_handler.write(line)
             shutil.move(fn,processed_dir)
@@ -64,17 +65,16 @@ def clean_iphone_data(df):
     df = df.applymap(lambda x: str.strip(x) if type(x)==str else x)
     #df = df.applymap(lambda x: pd.to_numeric(x, errors='ignore'))
 	# drop some data we don't need or want
+    desired_sensors = ['GPS', 'Acceleration (via User)', 'Acceleration (via Gravity)', 'Gyrometer (smooth)', 'Magnetometer (raw)', 'Altimeter (Barometer)', 'Microphone']
     df = df[df.data_name != 'Enabled']
     df = df[df.data_name != 'Authorisation Status']
     df = df[df.data_name != 'Floor']
-    df = df[df.sensor != 'Accelerometer (raw)']
-    df = df[df.sensor != 'Gyrometer (raw)']
-    df = df[df.sensor != 'Acceleration (total)']
+    df = df[df.sensor.isin(desired_sensors)]
     # Rename some sensor data so it's easier to deal with
     df.replace(to_replace={'sensor': {'Acceleration (via Gravity)': 'Gravity', 
                                       'Acceleration (via User)': 'Acceleration',
 									  'Gyrometer (smooth)': 'Gyrometer',
-									  'Magnetometer (corrected for device)': 'Magnetometer'
+									  'Magnetometer (raw)': 'Magnetometer'
 									  }
 						}, inplace=True)
     return df
