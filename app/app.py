@@ -54,7 +54,7 @@ def get_iphone_test():
 	try:
 		temp_data = query_db_convert_id(
 			reader=reader,
-			collection="iphone_test",
+			collection="iphone_test3",
 			method="pivoted",
 			username=user_name,
 			sensor="GPS",
