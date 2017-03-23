@@ -4,8 +4,6 @@ myApp.controller('MainController', function MainController() {
   this.name = "KnoWhere";
 });
 
-/*** Define factories ***/
-
 
 function addZ(n){return n<10 ? '0' + n : ''+n;}
 function dateToStr(d, fmt){
@@ -14,6 +12,32 @@ function dateToStr(d, fmt){
   } else {
     return d.toDateString();
   }
+}
+
+google.charts.setOnLoadCallback(drawDistanceChart);
+
+function drawDistanceChart(hourly_distances) {
+  if(hourly_distances === undefined){
+    return 0;
+  }
+  var data = google.visualization.arrayToDataTable(hourly_distances);
+
+  var options = {
+    title: 'Distance Travelled',
+    //curveType: 'function',
+    legend: { position: 'bottom' },
+    hAxis: {title: "Date", slantedText:true, slantedTextAngle:90 },
+    vAxis: {title: "Distance"},
+    series: {0:{color: '#999999'}}
+  };
+
+  window.addEventListener('resize', function(){
+    drawDistanceChart(hourly_distances);
+  }, true);
+
+  var chart = new google.visualization.LineChart(document.getElementById('distance_chart'));
+
+  chart.draw(data, options);
 }
 
 /*** FORM ***/
@@ -34,6 +58,7 @@ myApp.service("shared", function($http){
   var overviewdate=document.getElementById("overview-date")
   var mapdate=document.getElementById("map-date")
   var total_distance = "N/A"
+  var hourly_distances = undefined
   var home_coord = undefined
   var work_coord = undefined
 
@@ -55,7 +80,7 @@ myApp.service("shared", function($http){
       return user_data.filter(function(entry){
         return ("latitude" in entry) && (
           dateToStr(end_date,"ymd")==entry.date.substring(0,10) || 
-              user_data[user_data.length-3].date.substring(0,10)==entry.date.substring(0,10)
+              user_data[user_data.length-4].date.substring(0,10)==entry.date.substring(0,10)
         )
       });
     } else {
@@ -67,6 +92,16 @@ myApp.service("shared", function($http){
     if(user_data !== []){
       return user_data.filter(function(entry){
         return "total_distance" in entry;
+      });
+    } else {
+      return []
+    }
+  };
+
+  var get_hourly_distances = function(){
+    if(user_data !== []){
+      return user_data.filter(function(entry){
+        return "hourly_distances" in entry;
       });
     } else {
       return []
@@ -153,11 +188,14 @@ myApp.service("shared", function($http){
         overviewdate.innerText = dateToStr(first_date, "") + " \u2013 " + dateToStr(last_date, "");
         mapdate.innerText = dateToStr(last_date, "");
         total_distance = (get_total_distance()[0]["total_distance"]).toFixed(2);
+        hourly_distances = get_hourly_distances()[0]["hourly_distances"];
+        //console.log(hourly_distances)
         var hw = get_home_work_latlong()
         home_coord = [hw[0].home.lat, hw[0].home.long]
         work_coord = [hw[0].work.lat, hw[0].work.long]
         //console.log(total_distance)
         draw(map_latlong, home_coord, work_coord);
+        drawDistanceChart(hourly_distances);
       });
     }
   }
