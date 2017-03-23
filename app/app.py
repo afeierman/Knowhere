@@ -68,7 +68,7 @@ def get_iphone_test():
 
 		get_locs(reader, temp_data, user_name, user_data)
 		set_distance(temp_data, user_data)
-		set_distance_daily(temp_data, user_data)
+		#set_distance_daily(temp_data, user_data)
 	except:
 		user_data = []
 
