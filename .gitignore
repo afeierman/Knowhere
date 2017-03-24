@@ -2,6 +2,8 @@
 .ipynb_checkpoints
 *.pyc
 *credentials.cfg
+app/knowhere_db.py 
+app/knowhere_db.pyc
 .idea/*
 .idea/*
 *map-helper.js

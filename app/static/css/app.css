@@ -11,7 +11,7 @@ body {
 }
 
 h4.date-label {
-	color: #0094ff;
+	color: #999999;
 	font-weight: bold;
 }
 
@@ -37,10 +37,11 @@ h4.date-label {
 
 h4.panel-title {
 	font-size: 1em;
-	color: #7fc9ff;
-	background: none;
+	color: #ffffff;
+	background-color: #337ab7;
 	font-weight: bold;
 	border: none;
+	padding: 5px;
 }
 
 .panel, .panel-default, .overview-panel, .panel-body {
@@ -65,4 +66,13 @@ h4.panel-title {
 	background-color: #ffffff;
 	color: #666666;
 	border: 1px solid #e2e2e2;
+}
+
+#distance_chart {
+	width: 100%;
+}
+
+.list-group-item {
+	color: #666666;
+	font-weight: bold;
 }

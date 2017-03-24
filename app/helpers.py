@@ -60,35 +60,63 @@ def haversine(lon1, lat1, lon2, lat2):
     return miles
 
 
-def set_distance_traveled(gps_data, json_array):
+def set_distance(gps_data, json_array):
     """
     Calculate the distance a user has traveled over a given date range. Involves all modes of transportation, 
     and is calculated using Great-circle distance.
     """
 
+    import pandas.tseries.offsets as pdo
+
+    hourly_distances = [('Date', 'Distance')]
+
     #Use haversine function to get distances between all GPS points
     dist_traveled = haversine(gps_data['GPS Longitude'].shift(), gps_data['GPS Latitude'].shift(), 
           gps_data.ix[1:, 'GPS Longitude'], gps_data.ix[1:, 'GPS Latitude'])
 
+
+    dist_grouped = dist_traveled.groupby(pd.Grouper(freq='1H')).sum()
+    
+    for ts, dist in dist_grouped.iteritems():
+        h = "{0:02}-{1:02}-{2:02} {3:02}:{4:02}:{5:02}".format(
+            ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second
+        )
+
+        if np.isnan(dist):
+            dist = 0
+
+        hourly_distances.append((h, dist))
+
     json_array.append({"total_distance": dist_traveled.sum()})
+    json_array.append({"hourly_distances":hourly_distances})
 
 
-# def distance_traveled(min_date, max_date, username):
-#     """
-#     Calculate the distance a user has traveled over a given date range. Involves all modes of transportation, 
-#     and is calculated using Great-circle distance.
-#     """
+    #print "*************1\n", dist_traveled#.sum()
+
+
+# def set_distance_daily(gps_data, json_array):
+#     #Get day after day passed into function so that DB call works
+#     import pandas.tseries.offsets as pdo
     
-#     #make DB query to get GPS data for specified day 
-#     day_dist = reader.get_dataframe_pivoted(collection = 'iphone_test', sensor = "GPS", username = username,
-#                                 min_date = str(min_date), max_date = str(max_date))
-#     day_dist = day_dist.astype(float)
-    
-#     #Use haversine function to get distances between all GPS points
-#     dist_traveled = haversine(day_dist['GPS (Longitude)'].shift(), day_dist['GPS (Latitude)'].shift(), 
-#           day_dist.ix[1:, 'GPS (Longitude)'], day_dist.ix[1:, 'GPS (Latitude)'])
-    
-#     return dist_traveled.sum()
+#     hourly = gps_data.groupby(pd.Grouper(freq='1H'))
+#     hourly_distances = [('Date', 'Distance')]
+
+#     #total_dist = 0
+
+#     for hour in hourly:
+#         h = hour[0]
+#         h = "{0}-{1}-{2} {3}:{4}:{5}".format(
+#             h.year, h.month, h.day, h.hour, h.minute, h.second
+#         )
+#         #print hour[1]['GPS Longitude'].shift()
+#         distance = haversine(hour[1]['GPS Longitude'].shift(), hour[1]['GPS Latitude'].shift(), 
+#                    hour[1].ix[1:, 'GPS Longitude'], hour[1].ix[1:, 'GPS Latitude']).sum()
+#         hourly_distances.append((h, distance))
+#         #total_dist += distance
+#         #print "*************2\n",(h, distance)
+
+#     json_array.append({"hourly_distances":hourly_distances})
+#     #print "TOTAL DIST 2:", total_dist
 
 
 def get_locs(reader, user_data, user_name, json_array):
@@ -128,7 +156,7 @@ def get_label_latlongs(df, json_array):
     home=None; work=None
 
     gb = df.groupby(["cluster"]).agg(
-        {"hour": lambda x: float(((2 <= x) & (x < 6)).sum())/((0 <= x) & (x < 24)).sum()}
+        {"hour": lambda x: float(((0 <= x) & (x < 6)).sum())/((0 <= x) & (x < 24)).sum()}
     )
 
     home_idx = gb[gb["hour"] == max(gb["hour"])].index[0]
@@ -143,19 +171,19 @@ def get_label_latlongs(df, json_array):
     else:
         (home, work) = (zero, one)
 
-    print "150", "\n\n", work, "\n\n", work.index
+    #print "150", "\n\n", work, "\n\n", work.index
 
     min_home = home.loc[home.index == min(home.index),:]
     min_work = work.loc[work.index == work.index[len(work.index)/2],:]
 
-    print "155", "\n\n", min_home, "\n\n", min_work
+    #print "155", "\n\n", min_home, "\n\n", min_work
 
     labels["home"]["lat"] = float(min_home["GPS Latitude"])
     labels["home"]["long"] = float(min_home["GPS Longitude"])
     labels["work"]["lat"] = float(min_work["GPS Latitude"])
     labels["work"]["long"] = float(min_work["GPS Longitude"])
 
-    print "LABELS", labels
+    #print "LABELS", labels
 
     json_array.append(labels)
 
