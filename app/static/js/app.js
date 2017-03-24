@@ -15,6 +15,7 @@ function dateToStr(d, fmt){
 }
 
 google.charts.setOnLoadCallback(drawDistanceChart);
+google.charts.setOnLoadCallback(drawLocationChart);
 
 function drawDistanceChart(hourly_distances) {
   if(hourly_distances === undefined){
@@ -40,6 +41,35 @@ function drawDistanceChart(hourly_distances) {
   chart.draw(data, options);
 }
 
+
+function drawLocationChart(percent_home, percent_work) {
+  if(percent_home === undefined){
+    return 0;
+  }
+  var data = google.visualization.arrayToDataTable([
+    ["Location", "Percent"],
+    ["Home", percent_home],
+    ["Work", percent_work]
+  ]);
+
+  var options = {
+    title: 'Time Spent at Locations',
+    //curveType: 'function',
+    legend: { position: 'bottom' },
+    hAxis: {title: "Location", slantedText:true, slantedTextAngle:90 },
+    vAxis: {title: "Percent"},
+    series: {0:{color: '#999999'}}
+  };
+
+  window.addEventListener('resize', function(){
+    drawLocationChart();
+  }, true);
+
+  var chart = new google.visualization.ColumnChart(document.getElementById('location_chart'));
+
+  chart.draw(data, options);
+}
+
 /*** FORM ***/
 myApp.service("shared", function($http){
   var users = []
@@ -57,10 +87,12 @@ myApp.service("shared", function($http){
   var end_date = d
   var overviewdate=document.getElementById("overview-date")
   var mapdate=document.getElementById("map-date")
-  var total_distance = "N/A"
+  var total_distance = ""
   var hourly_distances = undefined
   var home_coord = undefined
   var work_coord = undefined
+  var percent_home = ""
+  var percent_work = ""
 
   var get_first_data = function(){
     if(user_data !== []){
@@ -80,7 +112,7 @@ myApp.service("shared", function($http){
       return user_data.filter(function(entry){
         return ("latitude" in entry) && (
           dateToStr(end_date,"ymd")==entry.date.substring(0,10) || 
-              user_data[user_data.length-4].date.substring(0,10)==entry.date.substring(0,10)
+              user_data[user_data.length-5].date.substring(0,10)==entry.date.substring(0,10)
         )
       });
     } else {
@@ -126,6 +158,16 @@ myApp.service("shared", function($http){
     }
   };
 
+  var get_home_work_percent = function(){
+    if(user_data !== []){
+      return user_data.filter(function(entry){
+        return "percent_work" in entry;
+      });
+    } else {
+      return []
+    }
+  };  
+
   return {
     queryUsers: function() {
       return $http({
@@ -137,6 +179,7 @@ myApp.service("shared", function($http){
       });
     },
     getTotalDistance: function() {return total_distance},
+    getLocationPercents: function() {return {"home":percent_home, "work":percent_work}},
     getUser: function(){return the_username;},
     getUsers: function(){return users.map(function(u){return u.username})},
     getStartDate: function() {return start_date;},
@@ -193,9 +236,18 @@ myApp.service("shared", function($http){
         var hw = get_home_work_latlong()
         home_coord = [hw[0].home.lat, hw[0].home.long]
         work_coord = [hw[0].work.lat, hw[0].work.long]
+
+        var hwp = get_home_work_percent()
+        percent_home = hwp[0].percent_home
+        percent_work = hwp[0].percent_work
+
+        /*console.log(hwp)
+        console.log(percent_home)
+        console.log(percent_work)*/
         //console.log(total_distance)
         draw(map_latlong, home_coord, work_coord);
         drawDistanceChart(hourly_distances);
+        drawLocationChart(percent_home, percent_work);
       });
     }
   }
@@ -240,6 +292,7 @@ myApp.controller("OverviewController", function($scope, shared){
   end_date = shared.getEndDate()
   this.date_range = toDateRange(start_date, end_date);
   this.getTotalDistance = shared.getTotalDistance;
+  this.getLocationPercents = shared.getLocationPercents;
   
   $scope.$watch(function(){
     return shared.getStartDate();

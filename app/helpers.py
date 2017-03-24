@@ -91,34 +91,6 @@ def set_distance(gps_data, json_array):
     json_array.append({"hourly_distances":hourly_distances})
 
 
-    #print "*************1\n", dist_traveled#.sum()
-
-
-# def set_distance_daily(gps_data, json_array):
-#     #Get day after day passed into function so that DB call works
-#     import pandas.tseries.offsets as pdo
-    
-#     hourly = gps_data.groupby(pd.Grouper(freq='1H'))
-#     hourly_distances = [('Date', 'Distance')]
-
-#     #total_dist = 0
-
-#     for hour in hourly:
-#         h = hour[0]
-#         h = "{0}-{1}-{2} {3}:{4}:{5}".format(
-#             h.year, h.month, h.day, h.hour, h.minute, h.second
-#         )
-#         #print hour[1]['GPS Longitude'].shift()
-#         distance = haversine(hour[1]['GPS Longitude'].shift(), hour[1]['GPS Latitude'].shift(), 
-#                    hour[1].ix[1:, 'GPS Longitude'], hour[1].ix[1:, 'GPS Latitude']).sum()
-#         hourly_distances.append((h, distance))
-#         #total_dist += distance
-#         #print "*************2\n",(h, distance)
-
-#     json_array.append({"hourly_distances":hourly_distances})
-#     #print "TOTAL DIST 2:", total_dist
-
-
 def get_locs(reader, user_data, user_name, json_array):
     """
     Predict clusters from cluster
@@ -126,7 +98,6 @@ def get_locs(reader, user_data, user_name, json_array):
     from sklearn import preprocessing
     from sklearn.cluster import AgglomerativeClustering
 
-    #H_model = uploader.retrieve_from_s3(user_name, model_type='H', bucket='knowhere-data', collection='models')
     H_model = get_model(user_name)
     H_data = user_data[['GPS Altitude','GPS Latitude','GPS Longitude']]
     preprocess = preprocessing.scale(H_data)
@@ -141,19 +112,17 @@ def get_locs(reader, user_data, user_name, json_array):
     H_data.loc[:,"GPS Latitude"] = H_data["GPS Latitude"].astype(float)
     H_data.loc[:,"GPS Longitude"] = H_data["GPS Longitude"].astype(float)
     H_data.loc[:,"GPS Altitude"] = H_data["GPS Altitude"].astype(float)
-    #df_grouped = H_data.groupby(["cluster", "hour"]).median()
-
-    #print "DF_GROUPED: ", df_grouped
 
     get_label_latlongs(H_data, json_array)
 
 
 def get_label_latlongs(df, json_array):
     df_grouped = df.groupby(["cluster", "hour"]).median()
-    zero = df_grouped.loc[0,:]
-    one = df_grouped.loc[1,:]
+    zero = df_grouped.loc[0,:]; one = df_grouped.loc[1,:]
+    zero_full = df[df.cluster==0]; one_full = df[df.cluster==1]
     labels = {"home":{},"work":{}}
     home=None; work=None
+    home_full=None; work_full=None
 
     gb = df.groupby(["cluster"]).agg(
         {"hour": lambda x: float(((0 <= x) & (x < 6)).sum())/((0 <= x) & (x < 24)).sum()}
@@ -161,29 +130,23 @@ def get_label_latlongs(df, json_array):
 
     home_idx = gb[gb["hour"] == max(gb["hour"])].index[0]
 
-    # if np.mean(zero.index) < np.mean(one.index):
-    #     home,work = one,zero
-    # else:
-    #     home,work = zero,one
 
     if home_idx != 0:
         (home, work) = (one, zero)
+        (home_full, work_full) = (one_full, zero_full)
     else:
         (home, work) = (zero, one)
+        (home_full, work_full) = (zero_full, one_full)
 
-    #print "150", "\n\n", work, "\n\n", work.index
+    set_loc_percents(home_full, work_full, json_array)
 
     min_home = home.loc[home.index == min(home.index),:]
     min_work = work.loc[work.index == work.index[len(work.index)/2],:]
-
-    #print "155", "\n\n", min_home, "\n\n", min_work
 
     labels["home"]["lat"] = float(min_home["GPS Latitude"])
     labels["home"]["long"] = float(min_home["GPS Longitude"])
     labels["work"]["lat"] = float(min_work["GPS Latitude"])
     labels["work"]["long"] = float(min_work["GPS Longitude"])
-
-    #print "LABELS", labels
 
     json_array.append(labels)
 
@@ -192,3 +155,18 @@ def get_model(username):
     import pickle
     filename = "data/hclust_{0}.p".format(username)
     return pickle.load(open(filename, "rb" ))
+
+
+def set_loc_percents(home, work, json_array):
+    home = home.groupby(lambda x: home['index'][x].day).agg({"index": lambda i: (max(i)-min(i)).total_seconds()})
+    work = work.groupby(lambda x: work['index'][x].day).agg({"index": lambda i: (max(i)-min(i)).total_seconds()})
+    # datediff_home = max(home["index"]) - min(home["index"])
+    # datediff_work = max(work["index"]) - min(work["index"])
+    seconds_home = np.sum(home["index"])
+    seconds_work = np.sum(work["index"])
+    seconds_total = seconds_home + seconds_work
+    percent_home = round(100*(float(seconds_home) / seconds_total), 2)
+    percent_work = round(100*(float(seconds_work) / seconds_total), 2)
+
+    json_array.append({"percent_home":percent_home, "percent_work":percent_work})
+

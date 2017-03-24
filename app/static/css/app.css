@@ -68,11 +68,12 @@ h4.panel-title {
 	border: 1px solid #e2e2e2;
 }
 
-#distance_chart {
+#distance_chart, #location_chart {
 	width: 100%;
 }
 
 .list-group-item {
 	color: #666666;
 	font-weight: bold;
+	margin-bottom: 20px;
 }
