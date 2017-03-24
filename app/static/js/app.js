@@ -56,8 +56,7 @@ function drawLocationChart(percent_home, percent_work) {
     title: 'Time Spent at Locations',
     //curveType: 'function',
     legend: { position: 'bottom' },
-    hAxis: {title: "Location", slantedText:true, slantedTextAngle:90 },
-    vAxis: {title: "Percent"},
+    vAxis: {title: "Percent", minValue:0, maxValue:100},
     series: {0:{color: '#999999'}}
   };
 
@@ -87,12 +86,12 @@ myApp.service("shared", function($http){
   var end_date = d
   var overviewdate=document.getElementById("overview-date")
   var mapdate=document.getElementById("map-date")
-  var total_distance = ""
+  var total_distance = "--"
   var hourly_distances = undefined
   var home_coord = undefined
   var work_coord = undefined
-  var percent_home = ""
-  var percent_work = ""
+  var percent_home = "--"
+  var percent_work = "--"
 
   var get_first_data = function(){
     if(user_data !== []){
