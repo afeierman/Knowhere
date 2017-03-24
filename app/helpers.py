@@ -66,30 +66,57 @@ def set_distance(gps_data, json_array):
     and is calculated using Great-circle distance.
     """
 
+    import pandas.tseries.offsets as pdo
+
+    hourly_distances = [('Date', 'Distance')]
+
     #Use haversine function to get distances between all GPS points
     dist_traveled = haversine(gps_data['GPS Longitude'].shift(), gps_data['GPS Latitude'].shift(), 
           gps_data.ix[1:, 'GPS Longitude'], gps_data.ix[1:, 'GPS Latitude'])
 
-    json_array.append({"total_distance": dist_traveled.sum()})
 
-
-def set_distance_daily(gps_data, json_array):
-    #Get day after day passed into function so that DB call works
-    import pandas.tseries.offsets as pdo
+    dist_grouped = dist_traveled.groupby(pd.Grouper(freq='1H')).sum()
     
-    hourly = gps_data.groupby(pd.Grouper(freq='1H'))
-    hourly_distances = [('Date', 'Distance')]
-
-    for hour in hourly:
-        h = hour[0]
-        h = "{0}-{1}-{2} {3}:{4}:{5}".format(
-            h.year, h.month, h.day, h.hour, h.minute, h.second
+    for ts, dist in dist_grouped.iteritems():
+        h = "{0:02}-{1:02}-{2:02} {3:02}:{4:02}:{5:02}".format(
+            ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second
         )
-        distance = haversine(hour[1]['GPS Longitude'].shift(), hour[1]['GPS Latitude'].shift(), 
-                   hour[1].ix[1:, 'GPS Longitude'], hour[1].ix[1:, 'GPS Latitude']).sum()
-        hourly_distances.append((h, distance))
 
+        if np.isnan(dist):
+            dist = 0
+
+        hourly_distances.append((h, dist))
+
+    json_array.append({"total_distance": dist_traveled.sum()})
     json_array.append({"hourly_distances":hourly_distances})
+
+
+    #print "*************1\n", dist_traveled#.sum()
+
+
+# def set_distance_daily(gps_data, json_array):
+#     #Get day after day passed into function so that DB call works
+#     import pandas.tseries.offsets as pdo
+    
+#     hourly = gps_data.groupby(pd.Grouper(freq='1H'))
+#     hourly_distances = [('Date', 'Distance')]
+
+#     #total_dist = 0
+
+#     for hour in hourly:
+#         h = hour[0]
+#         h = "{0}-{1}-{2} {3}:{4}:{5}".format(
+#             h.year, h.month, h.day, h.hour, h.minute, h.second
+#         )
+#         #print hour[1]['GPS Longitude'].shift()
+#         distance = haversine(hour[1]['GPS Longitude'].shift(), hour[1]['GPS Latitude'].shift(), 
+#                    hour[1].ix[1:, 'GPS Longitude'], hour[1].ix[1:, 'GPS Latitude']).sum()
+#         hourly_distances.append((h, distance))
+#         #total_dist += distance
+#         #print "*************2\n",(h, distance)
+
+#     json_array.append({"hourly_distances":hourly_distances})
+#     #print "TOTAL DIST 2:", total_dist
 
 
 def get_locs(reader, user_data, user_name, json_array):
