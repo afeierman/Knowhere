@@ -7,6 +7,8 @@ import pandas as pd
 from numpy import mean
 from bson.objectid import ObjectId
 from dateutil.parser import parse as parse_date
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
 
 class Reader:
 
@@ -109,12 +111,34 @@ class Reader:
         df = pd.DataFrame.from_dict(data, orient='index').astype('float')
         df.index = pd.to_datetime(df.index)
         return df
-        
+    
+    def get_audiobooks_dataframe(self, collection='audiobooks', recent=True, category=None, limit=500):
+        filter_args = {'OverallRating': {'$gt': 3.5}}
+        if recent:
+            filter_args['RelDate'] = {'$gte': datetime.now() + relativedelta(years=-1)}
+        if category:
+            filter_args['Category'] = category
+        pipeline = [
+            {'$match': filter_args},
+            {'$project': {
+                'Length': 1, 'NarratedBy': 1, 'NumOverRating':1, 'Catagory': 1, 
+                'OverallRating': 1, 'RelDate': 1, 'Title': 1, 'WrittenBy': 1,
+                'TotalScore': {'$multiply': [{'$ln': '$NumOverRating'}, '$OverallRating']}}
+            },
+            {'$sort': {'TotalScore': -1}},
+            {'$limit': limit}
+        ]
+        dd = self.db[collection].aggregate(pipeline, allowDiskUse = True)
+        dd = [entry for entry in dd]
+        df = pd.DataFrame(dd)
+        df = df.rename(index=str, columns={'Catagory': 'Category'})
+        return df
+    
     def read(self, collection, filter_args={}, find_one=False):
         if find_one:
             return self.db[collection].find_one(filter_args)
         return self.db[collection].find(filter_args)
-
+        
     def read_group(self, collection, grouping, filter_args={}):
         grouping = '$' + grouping if grouping[0] != '$' else grouping
         pipeline = [
