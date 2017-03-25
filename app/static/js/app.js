@@ -61,7 +61,7 @@ function drawLocationChart(percent_home, percent_work) {
   };
 
   window.addEventListener('resize', function(){
-    drawLocationChart();
+    drawLocationChart(percent_home, percent_work);
   }, true);
 
   var chart = new google.visualization.ColumnChart(document.getElementById('location_chart'));
