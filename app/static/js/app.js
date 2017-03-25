@@ -42,14 +42,15 @@ function drawDistanceChart(hourly_distances) {
 }
 
 
-function drawLocationChart(percent_home, percent_work) {
+function drawLocationChart(percent_home, percent_work, percent_other) {
   if(percent_home === undefined){
     return 0;
   }
   var data = google.visualization.arrayToDataTable([
     ["Location", "Percent"],
     ["Home", percent_home],
-    ["Work", percent_work]
+    ["Work", percent_work],
+    ["Other", percent_other],
   ]);
 
   var options = {
@@ -61,7 +62,7 @@ function drawLocationChart(percent_home, percent_work) {
   };
 
   window.addEventListener('resize', function(){
-    drawLocationChart(percent_home, percent_work);
+    drawLocationChart(percent_home, percent_work, percent_other);
   }, true);
 
   var chart = new google.visualization.ColumnChart(document.getElementById('location_chart'));
@@ -92,6 +93,7 @@ myApp.service("shared", function($http){
   var work_coord = undefined
   var percent_home = "--"
   var percent_work = "--"
+  var percent_other = "--"
 
   var get_first_data = function(){
     if(user_data !== []){
@@ -178,7 +180,7 @@ myApp.service("shared", function($http){
       });
     },
     getTotalDistance: function() {return total_distance},
-    getLocationPercents: function() {return {"home":percent_home, "work":percent_work}},
+    getLocationPercents: function() {return {"home":percent_home, "work":percent_work, "other":percent_other}},
     getUser: function(){return the_username;},
     getUsers: function(){return users.map(function(u){return u.username})},
     getStartDate: function() {return start_date;},
@@ -239,6 +241,7 @@ myApp.service("shared", function($http){
         var hwp = get_home_work_percent()
         percent_home = hwp[0].percent_home
         percent_work = hwp[0].percent_work
+        percent_other = hwp[0].percent_other
 
         /*console.log(hwp)
         console.log(percent_home)
@@ -246,7 +249,7 @@ myApp.service("shared", function($http){
         //console.log(total_distance)
         draw(map_latlong, home_coord, work_coord);
         drawDistanceChart(hourly_distances);
-        drawLocationChart(percent_home, percent_work);
+        drawLocationChart(percent_home, percent_work, percent_other);
       });
     }
   }

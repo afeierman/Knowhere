@@ -36,7 +36,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return send_file("templates/knowhere.html")
+	return send_file("templates/knowhere.html")
 
 @app.route("/query_users", methods=["GET"])
 def get_users():
@@ -52,6 +52,7 @@ def get_iphone_test():
 	# min_date = datetime.strptime(min_date, '%Y-%m-%dT%H:%M:%S.%fZ')
 	# max_date = datetime.strptime(max_date, '%Y-%m-%dT%H:%M:%S.%fZ')
 	try:
+		ts = time()
 		temp_data = query_db_convert_id(
 			reader=reader,
 			collection="iphone_test3",
@@ -63,11 +64,19 @@ def get_iphone_test():
 			#_filter={"user_id":kdb.ObjectId(user_id)}
 		)
 
-		user_data = temp_data.apply(make_lat_long, axis=1)
-		user_data = list(user_data[pd.notnull(user_data)])
+		#print 67, "app.py", ":" * 10, (time()-ts)
 
-		get_locs(reader, temp_data, user_name, user_data)
+		#print temp_data
+
+		user_data = temp_data.apply(make_lat_long, axis=1)
+		#print 72, "app.py", ":" * 10, (time()-ts)
+		user_data = list(user_data[pd.notnull(user_data)])
+		#print 74, "app.py", ":" * 10, (time()-ts)
+
+		get_locs(temp_data, user_name, user_data)
+		#print 77, "app.py", ":" * 10, (time()-ts)
 		set_distance(temp_data, user_data)
+		#print 79, "app.py", ":" * 10, (time()-ts)
 		#set_distance_daily(temp_data, user_data)
 	except:
 		user_data = []
