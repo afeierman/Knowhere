@@ -13,6 +13,13 @@ def iphone(username, file_in, file_out, commute=False):
     return dd
     
 
+def android(username, file_in, file_out, commute=False):    
+    df = read_from_csvs(username, file_in, file_out)
+    df = clean_android_data(df)
+    dd = aggregate_data(df, commute)
+    return dd
+    
+    
 def get_user_id(df, username):
     reader = Reader('knowhere')
     user_id = reader.get_user_id(username)
@@ -61,6 +68,18 @@ def clean_iphone_data(df):
     return df
 
 
+def clean_android_data(df):
+    df = df.applymap(lambda x: str.strip(x) if type(x)==str else x)
+    #df = df.applymap(lambda x: pd.to_numeric(x, errors='ignore'))
+	# drop some data we don't need or want
+    desired_sensors = ['GPS', 'Acceleration', 'Gravity', 'Gyromete', 'Magnetometer', 'Altimeter (Barometer)']
+    df = df[df.data_name != 'Enabled']
+    df = df[df.data_name != 'Authorisation Status']
+    df = df[df.data_name != 'Floor']
+    df = df[df.sensor.isin(desired_sensors)]
+    return df
+
+    
 def rename_keys(d, sensor=''):
     new_dict = {}
     for key, value in d.items():
@@ -73,6 +92,7 @@ def rename_keys(d, sensor=''):
         new_dict[key] = value
 
     return new_dict 
+    
     
 def aggregate_data(df, commute=False):
     df = df.filter(items=['user_id', 'sensor', 'data_name', 'data_raw'])
