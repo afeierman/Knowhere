@@ -11,9 +11,12 @@ class Preprocess_Data:
     def Norm(self):
         '''Subset and take the name of the columns'''
         # remove extraneous columns
+        #self.df = self.df[['Acceleration x','Acceleration y','Acceleration z',\
+        #                   'Magnetometer x','Magnetometer y','Magnetometer z',\
+        #                   'classification']]
         self.df = self.df[['Acceleration x','Acceleration y','Acceleration z',\
-                           'Magnetometer x','Magnetometer y','Magnetometer z',\
-                           'classification']]
+                           'Magnetometer x','Magnetometer y','Magnetometer z']]
+        
         self.df.iloc[:,0:6].astype(float)
         # Get the norm of acceleration and Magnetometer
         self.df['Acceleration'] =  np.sqrt(self.df['Acceleration x']**2 + self.df['Acceleration y']**2 +\
@@ -21,7 +24,9 @@ class Preprocess_Data:
         self.df['Magnetometer'] =  np.sqrt(self.df['Magnetometer x']**2 + self.df['Magnetometer y']**2 +\
                                            self.df['Magnetometer z']**2)
         # Drop the old columns
-        self.df = self.df[['Acceleration', 'Magnetometer', 'classification']]
+        #self.df = self.df[['Acceleration', 'Magnetometer', 'classification']]
+        self.df = self.df[['Acceleration', 'Magnetometer']]
+        self.df = self.df.dropna()
         return(self.df)
     
     def Feature_additions(self):
@@ -83,7 +88,8 @@ class Preprocess_Data:
         self.df['RollingMeanAcceleration15'] = self.df['Acceleration'].rolling(window=window5,center=False).max()
         self.df['RollingMaxMagnetometer15'] = self.df['Magnetometer'].rolling(window=window5,center=False).max()
         self.df = self.df.dropna()
-        self.df = self.df.iloc[:,range(0,2) + range(3,28) + [2]]
+
+        #self.df = self.df.iloc[:,range(0,2) + range(3,28) + [2]]
         return(self.df)
     
     def load_data_train(self):
@@ -104,16 +110,18 @@ class Preprocess_Data:
 
     def load_data_test(self):
         # load dataset
-        dataset = self.df.values
-        X = dataset[:,0:26]
-        # encode class values as integers
-        encoder = LabelEncoder()
-        encoder.fit(Y)
-        encoded_Y = encoder.transform(Y)
-        print('Original dataset shape {}'.format(Counter(encoded_Y)))
-        sm = SMOTE()
-        X_res = sm.fit_sample(X)
-        print('Resampled dataset shape {}'.format(Counter(y_res)))
-        return(self.df, X_res)
+        # dataset = self.df.values
+        # X = dataset[:,0:26]
+        # print self.df.columns
+        # # encode class values as integers
+        # encoder = LabelEncoder()
+        # encoder.fit(Y)
+        # encoded_Y = encoder.transform(Y)
+        # print('Original dataset shape {}'.format(Counter(encoded_Y)))
+        X = self.df.values[:,0:26]
+        # sm = SMOTE()
+        # X_res = sm.fit_sample(X)
+        # print('Resampled dataset shape {}'.format(Counter(y_res)))
+        return(X)
 
 
