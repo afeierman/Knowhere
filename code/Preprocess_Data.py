@@ -102,10 +102,10 @@ class Preprocess_Data:
         encoder = LabelEncoder()
         encoder.fit(Y)
         encoded_Y = encoder.transform(Y)
-        print('Original dataset shape {}'.format(Counter(encoded_Y)))
+        #print('Original dataset shape {}'.format(Counter(encoded_Y)))
         sm = SMOTE()
         X_res, y_res = sm.fit_sample(X, encoded_Y)
-        print('Resampled dataset shape {}'.format(Counter(y_res)))
+        #print('Resampled dataset shape {}'.format(Counter(y_res)))
         return(self.df, X_res, y_res)
 
     def load_data_test(self):
