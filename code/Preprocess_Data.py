@@ -1,7 +1,11 @@
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
+from imblearn.over_sampling import SMOTE
+from collections import Counter
+
 class Preprocess_Data:
     def __init__(self, df):
-        import pandas as pd
-        import numpy as np
         self.df = df
     
     def Norm(self):
@@ -83,13 +87,11 @@ class Preprocess_Data:
         return(self.df)
     
     def load_data_train(self):
-        from collections import Counter
-        from imblearn.over_sampling import SMOTE
         # load dataset
         dataset = self.df.values
         X = dataset[:,0:26]
         Y = dataset[:,27]
-        X, Y = shuffle(X, Y, random_state=123)
+        #X, Y = shuffle(X, Y, random_state=123)
         # encode class values as integers
         encoder = LabelEncoder()
         encoder.fit(Y)
@@ -101,8 +103,6 @@ class Preprocess_Data:
         return(self.df, X_res, y_res)
 
     def load_data_test(self):
-        from collections import Counter
-        from imblearn.over_sampling import SMOTE
         # load dataset
         dataset = self.df.values
         X = dataset[:,0:26]
