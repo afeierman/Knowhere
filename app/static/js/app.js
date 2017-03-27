@@ -24,7 +24,7 @@ function drawDistanceChart(hourly_distances) {
   var data = google.visualization.arrayToDataTable(hourly_distances);
 
   var options = {
-    title: 'Distance Travelled',
+    //title: 'Distance Traveled',
     //curveType: 'function',
     legend: { position: 'bottom' },
     hAxis: {title: "Date", slantedText:true, slantedTextAngle:90 },
@@ -54,7 +54,7 @@ function drawLocationChart(percent_home, percent_work, percent_other) {
   ]);
 
   var options = {
-    title: 'Time Spent at Locations',
+    //title: 'Time Spent at Locations',
     //curveType: 'function',
     legend: { position: 'bottom' },
     vAxis: {title: "Percent", minValue:0, maxValue:100},
@@ -94,6 +94,11 @@ myApp.service("shared", function($http){
   var percent_home = "--"
   var percent_work = "--"
   var percent_other = "--"
+  var the_animal = "--"
+  var commute_time = "--"
+  var commute_distance = "--"
+  var animal_speed = "--"
+  var animal_image_class = ""
 
   var get_first_data = function(){
     if(user_data !== []){
@@ -179,12 +184,27 @@ myApp.service("shared", function($http){
         usernames = users.map(function(x){return x.username})
       });
     },
+    queryAnimals: function() {
+      return $http({
+        method: "GET",
+        url: "/query_animals"
+      }).then(function(response){
+        animal_info = response.data
+        the_animal = animal_info["animal"][0].toUpperCase() + animal_info["animal"].substr(1,animal_info["animal"].length).toLowerCase()
+        commute_time = animal_info["time"]
+        commute_distance = animal_info["distance"]
+        animal_speed = animal_info["speed"]
+        animal_image_class = "sprite sprite-" + animal_info["animal"]
+        //console.log(response.data)
+      });
+    },
     getTotalDistance: function() {return total_distance},
     getLocationPercents: function() {return {"home":percent_home, "work":percent_work, "other":percent_other}},
     getUser: function(){return the_username;},
     getUsers: function(){return users.map(function(u){return u.username})},
     getStartDate: function() {return start_date;},
     getEndDate: function(){return end_date;},
+    getAnimalInfo: function() {return {"time":commute_time, "distance":commute_distance, "animal":the_animal, "speed":animal_speed, "class":animal_image_class}},
     setUser: function(uname){
       if(usernames.indexOf(uname) > -1){
         the_username = uname;
@@ -295,6 +315,8 @@ myApp.controller("OverviewController", function($scope, shared){
   this.date_range = toDateRange(start_date, end_date);
   this.getTotalDistance = shared.getTotalDistance;
   this.getLocationPercents = shared.getLocationPercents;
+  this.queryAnimals = shared.queryAnimals;
+  this.getAnimalInfo = shared.getAnimalInfo
   
   $scope.$watch(function(){
     return shared.getStartDate();

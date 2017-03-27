@@ -52,10 +52,10 @@ def get_iphone_test():
 	# min_date = datetime.strptime(min_date, '%Y-%m-%dT%H:%M:%S.%fZ')
 	# max_date = datetime.strptime(max_date, '%Y-%m-%dT%H:%M:%S.%fZ')
 	try:
-		ts = time()
+		#ts = time()
 		temp_data = query_db_convert_id(
 			reader=reader,
-			collection="iphone_test3",
+			collection="iphone",
 			method="pivoted",
 			username=user_name,
 			sensor="GPS",
@@ -83,6 +83,12 @@ def get_iphone_test():
 
 	return json.dumps(user_data);
 	#return json.dumps([{"names":["Andrew", "Bill", "Emil", "Glen"]}])
+
+
+@app.route("/query_animals", methods=["GET"])
+def get_animal():
+	animal_info = animal_riding_time()
+	return json.dumps(animal_info)
 	
 @app.teardown_appcontext
 def close_db(error):

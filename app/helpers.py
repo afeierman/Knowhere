@@ -10,8 +10,11 @@ import json
 from sklearn import preprocessing
 from sklearn.cluster import AgglomerativeClustering
 from math import radians, cos, sin, asin, sqrt
-from time import time
+#from time import time
+from random import shuffle
 pd.options.mode.chained_assignment = None
+
+commute_distance = 0
 
 def query_db_convert_id(reader, collection, id_cols=None,
 						sort_col=None, method=None, _filter={},
@@ -100,10 +103,15 @@ def set_distance(gps_data, json_array):
 
 
 def get_locs(user_data, user_name, json_array):
-    ts = time()
+    global commute_distance
+    #ts = time()
     #print "START get_locs:", ts
     locs = json.load(open("data/locations.txt", "r"))[user_name]
     #print 109, "get_locs", ":" * 10, (time()-ts)
+
+    commute_distance = haversine(locs["home"]["long"], locs["home"]["lat"],
+                                locs["work"]["long"], locs["work"]["lat"])
+
 
     json_array.append(locs)
     ud = user_data[['GPS Latitude','GPS Longitude']]
@@ -144,6 +152,28 @@ def get_locs(user_data, user_name, json_array):
     percent_other = round(100*(float(seconds_other) / seconds_total), 2)
 
     json_array.append({"percent_home":percent_home, "percent_work":percent_work, "percent_other":percent_other})
+
+
+
+
+def animal_riding_time():
+    animals = ['bear','tortoise','kangaroo','pig','unicorn','cheetah','human','cow', 'train']
+    shuffle(animals)
+    the_animal = animals[0]
+    animal_speeds = {
+        'bear': 35.0, 'tortoise': 0.2, 'kangaroo': 43.0, 'pig': 10.0,
+        'unicorn': 567.0, 'cheetah': 75.0, 'human': 3.1, 'cow': 25.0, 'train': 17.0
+    }
+
+    speed = animal_speeds[the_animal]
+    commute_time = (commute_distance / speed) * 60
+    return {
+        "speed": round(speed,2),
+        "time": round(commute_time,2),
+        "distance": round(commute_distance,2),
+        "animal": the_animal
+    }
+
 
 # def get_locs(reader, user_data, user_name, json_array):
 #     """
