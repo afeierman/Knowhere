@@ -45,7 +45,10 @@ class Reader:
         if user_id:
             filter_args['user_id'] = user_id            
         if sensor:
-            filter_args['sensor'] = sensor
+            if isinstance(sensor, (list, tuple)):
+                filter_args['sensor'] = {'$in': sensor}
+            else:
+                filter_args['sensor'] = sensor
         if commute is not None:
             filter_args['commute'] =str(commute)
         if min_date or max_date:
