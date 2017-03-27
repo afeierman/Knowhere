@@ -124,21 +124,24 @@
 		  	</div><!-- /.row -->
 	  	</div><!-- /.row -->
 	  	<div class="row">
-				<div class="col-lg-12">
+				<div class="col-lg-6">
 			  		<div class="panel panel-default overview-panel">
 		  				<div class="panel-heading">
 		    				<h4 id="mot_title" class="panel-title text-center">Modes of Transportation</h4>
 		  				</div>
 		  				<div class="panel-body">
-		    				<strong>Commute time:</strong> What if I &nbsp;
+		    				<h4><strong>Commute time:</strong> What if I &nbsp;
 								<button type="button" class="btn btn-success btn-sm" ng-click="overview.queryAnimals()">changed</button>
-		    				&nbsp;my mode of transportation?
+		    				&nbsp;my mode of transportation?</h4>
 		    				<br><br>
 		    				<div class="row">
+		    					<div class="col-lg-12">
+		    						<i id="animal-image" class="{{overview.getAnimalInfo().class}} img-responsive center-block"></i>
+		    					</div>
 		    					<div class="col-lg-12 text-center">
 		    						<h4>Have you tried riding a <span class="text-info" ng-cloak>{{overview.getAnimalInfo().animal}}</span>?</h4>
 		    					</div>
-		    					<div class="col-lg-4 col-lg-offset-4">
+		    					<div class="col-lg-12">
 				    				<ul class="list-group">
 									  <li class="list-group-item">
 									    <span class="badge" ng-cloak>{{overview.getAnimalInfo().speed}} mph</span>
@@ -153,9 +156,6 @@
 									    Commute time (straight line)
 									  </li>
 									</ul>
-		    					</div>
-		    					<div class="col-lg-12">
-		    						<i class="{{overview.getAnimalInfo().class}}"></i>
 		    					</div>
 		    				</div>
 		  				</div>
