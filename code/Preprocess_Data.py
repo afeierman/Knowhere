@@ -82,7 +82,7 @@ class Preprocess_Data:
         self.df = self.df.iloc[:,range(0,2) + range(3,28) + [2]]
         return(self.df)
     
-    def load_data(self):
+    def load_data_train(self):
         from collections import Counter
         from imblearn.over_sampling import SMOTE
         # load dataset
@@ -99,5 +99,21 @@ class Preprocess_Data:
         X_res, y_res = sm.fit_sample(X, encoded_Y)
         print('Resampled dataset shape {}'.format(Counter(y_res)))
         return(self.df, X_res, y_res)
+
+    def load_data_test(self):
+        from collections import Counter
+        from imblearn.over_sampling import SMOTE
+        # load dataset
+        dataset = self.df.values
+        X = dataset[:,0:26]
+        # encode class values as integers
+        encoder = LabelEncoder()
+        encoder.fit(Y)
+        encoded_Y = encoder.transform(Y)
+        print('Original dataset shape {}'.format(Counter(encoded_Y)))
+        sm = SMOTE()
+        X_res = sm.fit_sample(X)
+        print('Resampled dataset shape {}'.format(Counter(y_res)))
+        return(self.df, X_res)
 
 
