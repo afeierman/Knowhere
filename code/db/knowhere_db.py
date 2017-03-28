@@ -97,22 +97,20 @@ class Reader:
         rdf.drop(['sensor', 'data_name'], axis=1, inplace=True)
         rdf_pivoted = rdf.pivot(index='timestamp', columns='sensor_name', values='data_raw')
         return rdf_pivoted
-
+        
     def get_dataframe_pivoted(self, collection, username=None, user_id=None, sensor=None, commute=None, 
                                 min_date=None, max_date=None, include_max_date=False, grouping='timestamp'):
+        
+        def merge_sensor_data(entry):
+            new_entry = {'timestamp': entry['_id']}
+            map(lambda d: new_entry.update(d), entry['sensor_data'])
+            return new_entry
+        
         filter_args = self.build_filter(username, user_id, sensor, commute, min_date, max_date, include_max_date)
         dd = self.read_group(collection=collection, grouping=grouping, filter_args=filter_args)
-        dd = [entry for entry in dd]
+        dd = map(lambda entry: merge_sensor_data(entry), dd)
         df = pd.DataFrame(dd)
-        if df.shape[0]==0:
-            return df
-        df['sensor_data'] = df['sensor_data'].apply(lambda L: { k: v for d in L for k, v in d.items() })
-        df.rename(columns={'_id': 'timestamp'}, inplace=True)
         df = df.set_index('timestamp')
-        data = pd.DataFrame(df['sensor_data']).to_dict(orient='index')
-        data = {k:v['sensor_data'] for k,v in data.iteritems()}
-        df = pd.DataFrame.from_dict(data, orient='index').astype('float')
-        df.index = pd.to_datetime(df.index)
         return df
     
     def get_audiobooks_dataframe(self, collection='audiobooks', recent=True, category=None, limit=500):

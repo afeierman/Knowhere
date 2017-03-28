@@ -18,7 +18,23 @@ users = query_db_convert_id(
 	_filter={}
 )
 
+<<<<<<< Updated upstream:Knowhere/app/app.py
 activity_percents = get_activity_percents(reader)
+=======
+"""
+will get every user's data the when the app is run.
+need to make this dynamic so new records are fetched
+"""
+# data = query_db_convert_id(
+# 	reader=reader,
+# 	collection="iphone",
+# 	id_cols=["_id", "user_id"],
+# 	sort_col="timestamp",
+# 	unrolled=True
+# )
+
+
+>>>>>>> Stashed changes:app/app.py
 
 app = Flask(__name__)
 
@@ -66,7 +82,8 @@ def get_iphone_test():
 		set_distance(temp_data, user_data)
 		#print 79, "app.py", ":" * 10, (time()-ts)
 		#set_distance_daily(temp_data, user_data)
-	except:
+	except Exception, e:
+		print e
 		user_data = []
 
 	return json.dumps(user_data);
