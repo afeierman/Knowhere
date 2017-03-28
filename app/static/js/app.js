@@ -17,6 +17,8 @@ function dateToStr(d, fmt){
 google.charts.setOnLoadCallback(drawDistanceChart);
 google.charts.setOnLoadCallback(drawLocationChart);
 google.charts.setOnLoadCallback(drawActivitiesChart);
+var mot_panel = document.getElementById("mot-panel")
+var activities_panel = document.getElementById("activities-panel")
 
 function drawDistanceChart(hourly_distances) {
   if(hourly_distances === undefined){
@@ -308,6 +310,18 @@ myApp.service("shared", function($http){
         percent_home = hwp[0].percent_home
         percent_work = hwp[0].percent_work
         percent_other = hwp[0].percent_other
+
+
+        if(the_username == "glen" && (new Date("2017-03-23 23:59:59")) < end_date && end_date < (new Date("2017-03-25 00:00:00"))){
+          mot_panel.setAttribute("class", "col-lg-6");
+          console.log(activities_panel)
+          activities_panel.removeAttribute("hidden");
+        } else {
+          mot_panel.setAttribute("class", "col-lg-12");
+          activities_panel.setAttribute("hidden", "hidden");
+
+        }
+
 
         /*console.log(hwp)
         console.log(percent_home)

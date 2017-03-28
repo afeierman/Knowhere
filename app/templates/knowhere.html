@@ -124,7 +124,7 @@
 		  	</div><!-- /.row -->
 	  	</div><!-- /.row -->
 	  	<div class="row">
-		  		<div id="activities-panel" class="col-lg-6">
+		  		<div id="activities-panel" class="col-lg-6" hidden="hidden">
 			  		<div class="panel panel-default overview-panel">
 		  				<div class="panel-heading">
 		    				<h4 class="panel-title text-center">Activities</h4>
@@ -156,14 +156,14 @@
 		  				<div id="activities_chart"></div>
 					</div>
 				</div>
-				<div id="mot-panel" class="col-lg-6">
+				<div id="mot-panel" class="col-lg-12">
 			  		<div class="panel panel-default overview-panel">
 		  				<div class="panel-heading">
 		    				<h4 id="mot_title" class="panel-title text-center">Modes of Transportation</h4>
 		  				</div>
 		  				<div class="panel-body">
-		    				<h4><strong>Commute time:</strong> What if I &nbsp;
-								<button type="button" class="btn btn-success btn-sm" ng-click="overview.queryAnimals()">changed</button>
+		    				<h4><!-- <strong>Commute time:</strong> -->What if I &nbsp;
+								<button type="button" class="btn btn-success btn-sm" ng-click="overview.queryAnimals()"><span style="letter-spacing: 1.5px; font-size: 1.2em;">changed</span></button>
 		    				&nbsp;my mode of transportation?</h4>
 		    				<br><br>
 		    				<div class="row">
