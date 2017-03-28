@@ -5,10 +5,10 @@ to import once and speed up REST calls
 import pandas as pd
 import numpy as np
 import pandas.tseries.offsets as pdo
-import pickle
+#import pickle
 import json
-from sklearn import preprocessing
-from sklearn.cluster import AgglomerativeClustering
+# from sklearn import preprocessing
+# from sklearn.cluster import AgglomerativeClustering
 from math import radians, cos, sin, asin, sqrt
 #from time import time
 from random import shuffle
@@ -154,8 +154,6 @@ def get_locs(user_data, user_name, json_array):
     json_array.append({"percent_home":percent_home, "percent_work":percent_work, "percent_other":percent_other})
 
 
-
-
 def animal_riding_time():
     animals = ['bear','tortoise','kangaroo','pig','unicorn','cheetah','human','cow', 'train']
     shuffle(animals)
@@ -174,6 +172,47 @@ def animal_riding_time():
         "animal": the_animal
     }
 
+
+def get_activity_percents(reader):
+    import pickle
+    # import numpy as np
+    import preprocess_data as pdata
+    pkl = pickle.load(open("data/pickle_glen_C_032617.p", "rb"))
+    glen24th = reader.get_dataframe_pivoted(
+        collection="iphone", username="glen",
+        sensor=["Acceleration", "Magnetometer"], commute=True, 
+        min_date="2017-03-24 00:00:00", max_date="2017-03-25 00:00:00")
+
+    glen24th = reader.get_dataframe_pivoted(collection="iphone", username="glen", sensor=["Acceleration", "Magnetometer"], commute=True, 
+                                min_date="2017-03-24 00:00:00", max_date="2017-03-25 00:00:00")
+
+    glen24th = pdata.Preprocess_Data(glen24th)
+    glen24th.Norm()
+    data = glen24th.Feature_additions()
+    X = glen24th.load_data_test()
+
+    activity_labels = {
+        0:"driving", 1:"elevator", 2:"standing",
+        3:"train", 4:"train", 5:"walking"}
+
+    pred = np.vectorize(lambda x: activity_labels[x])(pkl.predict(X))
+    df = pd.DataFrame({"date":data.index, "label":pred})
+    df["hm"] = df["date"].apply(lambda x: "{0}{1}".format(x.hour, x.minute))
+    df = df.groupby(["label", "hm"]).agg({"date": lambda i: (max(i)-min(i)).total_seconds()})
+
+    # date actually = seconds.
+    df = df.reset_index().groupby("label").sum().reset_index()
+    df.columns = ["label", "seconds"]
+
+    total_seconds = np.sum(df.seconds)
+    activity_percents = {}
+
+    def set_percents(x):
+        activity_percents[x.label] = round(x.seconds/total_seconds*100,2)
+
+    df.apply(set_percents, axis=1)
+
+    return activity_percents
 
 # def get_locs(reader, user_data, user_name, json_array):
 #     """

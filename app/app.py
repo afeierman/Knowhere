@@ -18,19 +18,7 @@ users = query_db_convert_id(
 	_filter={}
 )
 
-"""
-will get every user's data the when the app is run.
-need to make this dynamic so new records are fetched
-"""
-# data = query_db_convert_id(
-# 	reader=reader,
-# 	collection="iphone_test",
-# 	id_cols=["_id", "user_id"],
-# 	sort_col="timestamp",
-# 	unrolled=True
-# )
-
-
+activity_percents = get_activity_percents(reader)
 
 app = Flask(__name__)
 
@@ -89,6 +77,10 @@ def get_iphone_test():
 def get_animal():
 	animal_info = animal_riding_time()
 	return json.dumps(animal_info)
+
+@app.route("/query_activities", methods=["GET"])
+def get_activities():
+	return json.dumps(activity_percents)
 	
 @app.teardown_appcontext
 def close_db(error):

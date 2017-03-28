@@ -16,6 +16,7 @@ function dateToStr(d, fmt){
 
 google.charts.setOnLoadCallback(drawDistanceChart);
 google.charts.setOnLoadCallback(drawLocationChart);
+google.charts.setOnLoadCallback(drawActivitiesChart);
 
 function drawDistanceChart(hourly_distances) {
   if(hourly_distances === undefined){
@@ -50,7 +51,7 @@ function drawLocationChart(percent_home, percent_work, percent_other) {
     ["Location", "Percent"],
     ["Home", percent_home],
     ["Work", percent_work],
-    ["Other", percent_other],
+    ["Other", percent_other]
   ]);
 
   var options = {
@@ -69,6 +70,37 @@ function drawLocationChart(percent_home, percent_work, percent_other) {
 
   chart.draw(data, options);
 }
+
+function drawActivitiesChart(activities) {
+  if(activities === undefined){
+    return 0;
+  }
+  var data = google.visualization.arrayToDataTable([
+    ["Activity", "Percent"],
+    ["Walking", activities.walking],
+    ["Train", activities.train],
+    ["Driving", activities.driving],
+    ["Elevator", activities.elevator],
+    ["Standing", activities.standing]
+  ]);
+
+  var options = {
+    //title: 'Time Spent at Locations',
+    //curveType: 'function',
+    legend: { position: 'bottom' },
+    vAxis: {title: "Percent", minValue:0, maxValue:100},
+    series: {0:{color: '#999999'}}
+  };
+
+  window.addEventListener('resize', function(){
+    drawActivitiesChart(activities);
+  }, true);
+
+  var chart = new google.visualization.ColumnChart(document.getElementById('activities_chart'));
+
+  chart.draw(data, options);
+}
+
 
 /*** FORM ***/
 myApp.service("shared", function($http){
@@ -99,6 +131,7 @@ myApp.service("shared", function($http){
   var commute_distance = "--"
   var animal_speed = "--"
   var animal_image_class = ""
+  var activities_info = undefined
 
   var get_first_data = function(){
     if(user_data !== []){
@@ -172,7 +205,19 @@ myApp.service("shared", function($http){
     } else {
       return []
     }
-  };  
+  };
+
+  function queryActivities() {
+    return $http({
+      method: "GET",
+      url: "/query_activities"
+    }).then(function(response){
+      activities_info = response.data
+      //console.log(activities_info)
+    });
+  };
+  //static, one time call
+  queryActivities();
 
   return {
     queryUsers: function() {
@@ -205,6 +250,7 @@ myApp.service("shared", function($http){
     getStartDate: function() {return start_date;},
     getEndDate: function(){return end_date;},
     getAnimalInfo: function() {return {"time":commute_time, "distance":commute_distance, "animal":the_animal, "speed":animal_speed, "class":animal_image_class}},
+    getActivitiesInfo: function() {return activities_info},
     setUser: function(uname){
       if(usernames.indexOf(uname) > -1){
         the_username = uname;
@@ -267,9 +313,11 @@ myApp.service("shared", function($http){
         console.log(percent_home)
         console.log(percent_work)*/
         //console.log(total_distance)
+
         draw(map_latlong, home_coord, work_coord);
         drawDistanceChart(hourly_distances);
         drawLocationChart(percent_home, percent_work, percent_other);
+        drawActivitiesChart(activities_info);
       });
     }
   }
@@ -317,6 +365,7 @@ myApp.controller("OverviewController", function($scope, shared){
   this.getLocationPercents = shared.getLocationPercents;
   this.queryAnimals = shared.queryAnimals;
   this.getAnimalInfo = shared.getAnimalInfo
+  this.getActivitiesInfo = shared.getActivitiesInfo
   
   $scope.$watch(function(){
     return shared.getStartDate();

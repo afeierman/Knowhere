@@ -100,7 +100,7 @@
 				<div class="col-lg-6">
 			  		<div class="panel panel-default overview-panel">
 		  				<div class="panel-heading">
-		    				<h4 class="panel-title text-center">Time Spent at Locations</h4>
+		    				<h4 class="panel-title text-center">Locations</h4>
 		  				</div>
 		  				<div class="panel-body">
 		    				<ul class="list-group">
@@ -124,7 +124,39 @@
 		  	</div><!-- /.row -->
 	  	</div><!-- /.row -->
 	  	<div class="row">
-				<div class="col-lg-6">
+		  		<div id="activities-panel" class="col-lg-6">
+			  		<div class="panel panel-default overview-panel">
+		  				<div class="panel-heading">
+		    				<h4 class="panel-title text-center">Activities</h4>
+		  				</div>
+		  				<div class="panel-body">
+		    				<ul class="list-group">
+							  <li id="location-group" class="list-group-item col-lg-4">
+							    <span class="badge" ng-cloak>{{overview.getActivitiesInfo().walking}} %</span>
+							    <i title="walking" class="fa fa-user overview-icon"></i>
+							  </li>
+							  <li class="list-group-item col-lg-4">
+							    <span class="badge" ng-cloak>{{overview.getActivitiesInfo().train}} %</span>
+							    <i title="train" class="fa fa-subway overview-icon"></i>
+							  </li>
+							  <li class="list-group-item col-lg-4">
+							    <span class="badge" ng-cloak>{{overview.getActivitiesInfo().driving}} %</span>
+							    <i title="driving" class="fa fa-car overview-icon"></i>
+							  </li>
+							  <li class="list-group-item col-lg-4">
+							    <span class="badge" ng-cloak>{{overview.getActivitiesInfo().elevator}} %</span>
+							    <i title="elevator" class="fa fa-arrows-v overview-icon"></i>
+							  </li>
+							  <li class="list-group-item col-lg-4">
+							    <span class="badge" ng-cloak>{{overview.getActivitiesInfo().standing}} %</span>
+							    <i title="standing" class="fa fa-street-view overview-icon"></i>
+							  </li>
+							</ul>
+		  				</div>
+		  				<div id="activities_chart"></div>
+					</div>
+				</div>
+				<div id="mot-panel" class="col-lg-6">
 			  		<div class="panel panel-default overview-panel">
 		  				<div class="panel-heading">
 		    				<h4 id="mot_title" class="panel-title text-center">Modes of Transportation</h4>
