@@ -178,13 +178,11 @@ def get_activity_percents(reader):
     # import numpy as np
     import preprocess_data as pdata
     pkl = pickle.load(open("data/pickle_glen_C_032617.p", "rb"))
+    
     glen24th = reader.get_dataframe_pivoted(
         collection="iphone", username="glen",
         sensor=["Acceleration", "Magnetometer"], commute=True, 
         min_date="2017-03-24 00:00:00", max_date="2017-03-25 00:00:00")
-
-    glen24th = reader.get_dataframe_pivoted(collection="iphone", username="glen", sensor=["Acceleration", "Magnetometer"], commute=True, 
-                                min_date="2017-03-24 00:00:00", max_date="2017-03-25 00:00:00")
 
     glen24th = pdata.Preprocess_Data(glen24th)
     glen24th.Norm()
