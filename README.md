@@ -7,4 +7,4 @@ This app was built using python, flask, and angular.
 
 Unicorns don't need runways.
 
-![](https://blog.nycdatascience.com/wp-content/uploads/2017/04/Picture4.gif)
+![](notes/KnoWhere.gif?raw=true)
